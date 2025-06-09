@@ -15,7 +15,7 @@ interface GameProps {
 
 export interface ObstacleType {
   id: string;
-  type: "shark" | "whale" | "octopus";
+  type: "shark" | "whale" | "octopus" | "rock";
   x: number;
   y: number;
   speed: number;
@@ -29,8 +29,22 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [level, setLevel] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [gameSpeed, setGameSpeed] = useState(3);
+  const [gameStartTime] = useState(Date.now());
+  const [followMode, setFollowMode] = useState(false);
 
   const playerX = 100; // Fixed X position for the player
+
+  // Check if 10 seconds have passed to enable follow mode
+  useEffect(() => {
+    const checkFollowMode = setInterval(() => {
+      const elapsed = Date.now() - gameStartTime;
+      if (elapsed >= 10000 && !followMode) {
+        setFollowMode(true);
+      }
+    }, 1000);
+
+    return () => clearInterval(checkFollowMode);
+  }, [gameStartTime, followMode]);
 
   // Handle player movement
   useEffect(() => {
@@ -50,7 +64,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   // Generate obstacles
   const generateObstacle = useCallback(() => {
-    const types: ("shark" | "whale" | "octopus")[] = ["shark", "whale", "octopus"];
+    const types: ("shark" | "whale" | "octopus" | "rock")[] = ["shark", "whale", "octopus", "rock"];
     const type = types[Math.floor(Math.random() * types.length)];
     
     return {
@@ -70,10 +84,23 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       // Move obstacles
       setObstacles(prev => {
         const updated = prev
-          .map(obstacle => ({
-            ...obstacle,
-            x: obstacle.x - obstacle.speed,
-          }))
+          .map(obstacle => {
+            let newX = obstacle.x - obstacle.speed;
+            let newY = obstacle.y;
+            
+            // If follow mode is active, make obstacles move towards player
+            if (followMode) {
+              const deltaY = playerY - obstacle.y;
+              const followSpeed = 1.5;
+              newY += Math.sign(deltaY) * Math.min(Math.abs(deltaY), followSpeed);
+            }
+            
+            return {
+              ...obstacle,
+              x: newX,
+              y: newY,
+            };
+          })
           .filter(obstacle => obstacle.x > -100);
 
         // Add new obstacles randomly
@@ -89,7 +116,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(gameLoop);
-  }, [gameOver, generateObstacle]);
+  }, [gameOver, generateObstacle, followMode, playerY]);
 
   // Level progression
   useEffect(() => {
@@ -133,6 +160,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           setLevel(1);
           setGameSpeed(3);
           setGameOver(false);
+          setFollowMode(false);
         }}
         onChooseAvatar={onRestart}
       />
@@ -140,20 +168,68 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   }
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-r from-cyan-300 via-blue-400 to-blue-500 overflow-hidden">
-      {/* Animated waves background */}
+    <div className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden">
+      {/* Realistic ocean background with multiple wave layers */}
       <div className="absolute inset-0">
-        <div className="absolute w-full h-32 bg-gradient-to-r from-blue-300 to-cyan-300 opacity-60 animate-pulse" 
-             style={{ bottom: '0%', clipPath: 'polygon(0 20px, 100% 0px, 100% 100%, 0% 100%)' }} />
-        <div className="absolute w-full h-24 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-70" 
-             style={{ bottom: '10%', clipPath: 'polygon(0 15px, 100% 0px, 100% 100%, 0% 100%)' }} />
-        <div className="absolute w-full h-20 bg-gradient-to-r from-blue-500 to-cyan-500 opacity-80" 
-             style={{ bottom: '20%', clipPath: 'polygon(0 10px, 100% 0px, 100% 100%, 0% 100%)' }} />
+        {/* Deep ocean layer */}
+        <div className="absolute w-full h-full bg-gradient-to-b from-blue-400 to-blue-800" />
+        
+        {/* Animated wave layers */}
+        <div 
+          className="absolute w-[150%] h-32 bg-gradient-to-r from-blue-300 to-cyan-300 opacity-70 animate-pulse" 
+          style={{ 
+            bottom: '0%', 
+            left: '-25%',
+            clipPath: 'polygon(0 30px, 100% 0px, 100% 100%, 0% 100%)',
+            animation: 'wave1 6s ease-in-out infinite'
+          }} 
+        />
+        <div 
+          className="absolute w-[150%] h-24 bg-gradient-to-r from-blue-200 to-cyan-200 opacity-60" 
+          style={{ 
+            bottom: '8%', 
+            left: '-30%',
+            clipPath: 'polygon(0 20px, 100% 0px, 100% 100%, 0% 100%)',
+            animation: 'wave2 8s ease-in-out infinite reverse'
+          }} 
+        />
+        <div 
+          className="absolute w-[150%] h-20 bg-gradient-to-r from-white to-cyan-100 opacity-50" 
+          style={{ 
+            bottom: '15%', 
+            left: '-20%',
+            clipPath: 'polygon(0 15px, 100% 0px, 100% 100%, 0% 100%)',
+            animation: 'wave3 4s ease-in-out infinite'
+          }} 
+        />
+        
+        {/* Foam and bubbles */}
+        <div className="absolute inset-0 opacity-20">
+          {Array.from({ length: 15 }, (_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* UI Elements */}
       <Lives lives={lives} />
       <Score score={score} level={level} />
+
+      {/* Follow mode indicator */}
+      {followMode && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold animate-pulse">
+          DANGER MODE: Obstacles are hunting you!
+        </div>
+      )}
 
       {/* Player */}
       <Player avatar={avatar} x={playerX} y={playerY} />
@@ -167,6 +243,22 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg font-bold drop-shadow-lg">
         Use ↑↓ Arrow Keys to Move
       </div>
+
+      {/* CSS for wave animations */}
+      <style jsx>{`
+        @keyframes wave1 {
+          0%, 100% { transform: translateX(0) scaleY(1); }
+          50% { transform: translateX(-10px) scaleY(1.1); }
+        }
+        @keyframes wave2 {
+          0%, 100% { transform: translateX(0) scaleY(1); }
+          50% { transform: translateX(15px) scaleY(0.9); }
+        }
+        @keyframes wave3 {
+          0%, 100% { transform: translateX(0) scaleY(1); }
+          50% { transform: translateX(-5px) scaleY(1.2); }
+        }
+      `}</style>
     </div>
   );
 };
