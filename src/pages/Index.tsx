@@ -1,14 +1,18 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import { AvatarSelection } from "@/components/AvatarSelection";
+import { Game } from "@/components/Game";
+
+export type Avatar = "boy" | "girl" | "robot" | "shark" | "alien";
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
+
+  if (!selectedAvatar) {
+    return <AvatarSelection onSelect={setSelectedAvatar} />;
+  }
+
+  return <Game avatar={selectedAvatar} onRestart={() => setSelectedAvatar(null)} />;
 };
 
 export default Index;
