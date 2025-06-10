@@ -35,8 +35,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [level, setLevel] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [gameSpeed, setGameSpeed] = useState(3);
-  const [gameStartTime] = useState(Date.now());
-  const [followMode, setFollowMode] = useState(false);
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [storyShown, setStoryShown] = useState(false);
   const [victory, setVictory] = useState(false);
@@ -49,6 +47,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const playerX = 100; // Fixed X position for the player
+
+  // Follow mode (danger mode) is now based on level instead of time
+  const followMode = level >= 5;
 
   // Determine current gear based on level
   const getCurrentGear = (): Gear => {
@@ -213,18 +214,27 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       type = "octopus";
     }
     
-    let speed = gameSpeed + Math.random() * 2;
+    let speed = gameSpeed;
+    
+    // For levels 1-4, make obstacles very slow and negligible
+    if (level <= 4) {
+      speed = gameSpeed * 0.3; // Much slower obstacles
+    } else {
+      speed = gameSpeed + Math.random() * 2;
+    }
     
     // Apply speed boost if active
     if (speedBoost) {
       speed *= 0.5; // Slow down obstacles when boost is active
     }
     
-    // Level-based speed increases for sharks and whales
-    if (type === "shark") {
-      speed *= (1 + level * 0.3);
-    } else if (type === "whale") {
-      speed *= (1 + level * 0.25);
+    // Level-based speed increases for sharks and whales (only after level 4)
+    if (level > 4) {
+      if (type === "shark") {
+        speed *= (1 + level * 0.3);
+      } else if (type === "whale") {
+        speed *= (1 + level * 0.25);
+      }
     }
     
     const obstacle: ObstacleType = {
@@ -235,8 +245,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       speed,
     };
 
-    // Add jumping behavior for whales
-    if (type === "whale" && Math.random() < 0.3) {
+    // Add jumping behavior for whales (only after level 4)
+    if (type === "whale" && level > 4 && Math.random() < 0.3) {
       obstacle.jumping = true;
       obstacle.jumpStart = Date.now();
       obstacle.jumpDirection = Math.random() < 0.5 ? -1 : 1;
@@ -272,7 +282,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
               }
             }
             
-            // If follow mode is active, make obstacles move towards player
+            // If follow mode is active (level 5+), make obstacles move towards player
             if (followMode && !obstacle.jumping) {
               const deltaY = playerY - obstacle.y;
               const followSpeed = 1.5;
@@ -287,8 +297,13 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Add new obstacles randomly
-        if (Math.random() < 0.02) {
+        // Add new obstacles with level-based frequency
+        let spawnRate = 0.02; // Default spawn rate
+        if (level <= 4) {
+          spawnRate = 0.005; // Much less frequent obstacles for easy levels
+        }
+        
+        if (Math.random() < spawnRate) {
           updated.push(generateObstacle());
         }
 
@@ -300,7 +315,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(gameLoop);
-  }, [gameOver, victory, showStoryPopup, generateObstacle, followMode, playerY]);
+  }, [gameOver, victory, showStoryPopup, generateObstacle, followMode, playerY, level]);
 
   // Level progression
   useEffect(() => {
@@ -501,7 +516,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         </div>
       )}
 
-      {/* Follow mode indicator */}
+      {/* Follow mode indicator - now shows from level 5 */}
       {followMode && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold animate-pulse">
           DANGER MODE: Obstacles are hunting you!
