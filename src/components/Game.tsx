@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Avatar } from "@/pages/Index";
 import { Player } from "./Player";
 import { Obstacle } from "./Obstacle";
@@ -40,6 +40,13 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [showStoryPopup, setShowStoryPopup] = useState(false);
   const [storyShown, setStoryShown] = useState(false);
   const [victory, setVictory] = useState(false);
+  const [speedBoost, setSpeedBoost] = useState(false);
+  const [speedBoostCount, setSpeedBoostCount] = useState(3);
+
+  // Touch handling refs
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const longTapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const gameAreaRef = useRef<HTMLDivElement>(null);
 
   const playerX = 100; // Fixed X position for the player
 
@@ -51,6 +58,105 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   };
 
   const currentGear = getCurrentGear();
+
+  // Movement functions
+  const moveUp = () => {
+    if (gameOver || victory || showStoryPopup) return;
+    setPlayerY(prev => Math.max(50, prev - 60));
+  };
+
+  const moveDown = () => {
+    if (gameOver || victory || showStoryPopup) return;
+    setPlayerY(prev => Math.min(550, prev + 60));
+  };
+
+  const activateSpeedBoost = () => {
+    if (speedBoostCount > 0 && !speedBoost) {
+      setSpeedBoost(true);
+      setSpeedBoostCount(prev => prev - 1);
+      setTimeout(() => setSpeedBoost(false), 3000); // 3 second boost
+    }
+  };
+
+  // Touch event handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
+
+    // Start long tap timer
+    longTapTimeoutRef.current = setTimeout(() => {
+      activateSpeedBoost();
+      // Vibrate if available
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+      }
+    }, 500); // 500ms for long tap
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    // Cancel long tap if finger moves
+    if (longTapTimeoutRef.current) {
+      clearTimeout(longTapTimeoutRef.current);
+      longTapTimeoutRef.current = null;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!touchStartRef.current) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+
+    // Cancel long tap timer
+    if (longTapTimeoutRef.current) {
+      clearTimeout(longTapTimeoutRef.current);
+      longTapTimeoutRef.current = null;
+    }
+
+    // Check if it's a quick tap (not a swipe and not a long tap)
+    if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30 && deltaTime < 500) {
+      // Quick tap - jump (move up)
+      moveUp();
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    } else if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      // Horizontal swipe
+      if (deltaX > 0) {
+        // Swipe right - move down
+        moveDown();
+      } else {
+        // Swipe left - move up
+        moveUp();
+      }
+      if (navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+    } else if (Math.abs(deltaY) > 50) {
+      // Vertical swipe
+      if (deltaY > 0) {
+        // Swipe down
+        moveDown();
+      } else {
+        // Swipe up
+        moveUp();
+      }
+      if (navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+    }
+
+    touchStartRef.current = null;
+  };
 
   // Check if 10 seconds have passed to enable follow mode
   useEffect(() => {
@@ -78,21 +184,24 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   }, [level, lives, score]);
 
-  // Handle player movement
+  // Handle player movement with keyboard
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (gameOver || victory || showStoryPopup) return;
       
-      if (e.key === "ArrowUp" && playerY > 50) {
-        setPlayerY(prev => Math.max(50, prev - 60));
-      } else if (e.key === "ArrowDown" && playerY < 550) {
-        setPlayerY(prev => Math.min(550, prev + 60));
+      if (e.key === "ArrowUp") {
+        moveUp();
+      } else if (e.key === "ArrowDown") {
+        moveDown();
+      } else if (e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        activateSpeedBoost();
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [playerY, gameOver, victory, showStoryPopup]);
+  }, [speedBoostCount, speedBoost]);
 
   // Generate obstacles with level-based logic
   const generateObstacle = useCallback(() => {
@@ -105,6 +214,11 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
     
     let speed = gameSpeed + Math.random() * 2;
+    
+    // Apply speed boost if active
+    if (speedBoost) {
+      speed *= 0.5; // Slow down obstacles when boost is active
+    }
     
     // Level-based speed increases for sharks and whales
     if (type === "shark") {
@@ -129,7 +243,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
     
     return obstacle;
-  }, [gameSpeed, level]);
+  }, [gameSpeed, level, speedBoost]);
 
   // Game loop
   useEffect(() => {
@@ -234,6 +348,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setShowStoryPopup(false);
     setStoryShown(false);
     setVictory(false);
+    setSpeedBoost(false);
+    setSpeedBoostCount(3);
   };
 
   if (victory) {
@@ -260,7 +376,13 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   }
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden">
+    <div 
+      ref={gameAreaRef}
+      className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Show story popup */}
       {showStoryPopup && <StoryPopup onContinue={handleStoryClose} />}
 
@@ -316,6 +438,41 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <Lives lives={lives} />
       <Score score={score} level={level} />
 
+      {/* Mobile Touch Controls Overlay */}
+      <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center md:hidden">
+        {/* Left side controls */}
+        <div className="flex flex-col space-y-2">
+          <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 text-white text-xs text-center">
+            Swipe ↕ to move<br />
+            Tap to jump
+          </div>
+        </div>
+        
+        {/* Speed boost button */}
+        <button
+          className={`w-16 h-16 rounded-full text-2xl font-bold transition-all ${
+            speedBoostCount > 0 && !speedBoost 
+              ? 'bg-yellow-500 hover:bg-yellow-600 active:scale-95' 
+              : 'bg-gray-400 cursor-not-allowed'
+          } text-white shadow-lg`}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            activateSpeedBoost();
+          }}
+          disabled={speedBoostCount === 0 || speedBoost}
+        >
+          ⚡
+          <div className="text-xs mt-1">{speedBoostCount}</div>
+        </button>
+      </div>
+
+      {/* Speed boost indicator */}
+      {speedBoost && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl animate-pulse">
+          ⚡️
+        </div>
+      )}
+
       {/* Pirate ship appears from level 7 */}
       {level >= 7 && (
         <div className="absolute top-4 right-4 text-6xl animate-bounce">
@@ -360,8 +517,13 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       ))}
 
       {/* Instructions */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg font-bold drop-shadow-lg">
-        Use ↑↓ Arrow Keys to Move - Level {level} ({currentGear.toUpperCase()})
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg font-bold drop-shadow-lg text-center">
+        <div className="hidden md:block">
+          Use ↑↓ Arrow Keys to Move, Space for Speed Boost - Level {level} ({currentGear.toUpperCase()})
+        </div>
+        <div className="md:hidden">
+          Level {level} ({currentGear.toUpperCase()}) - Long tap ⚡ for speed boost
+        </div>
       </div>
     </div>
   );
