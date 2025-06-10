@@ -19,7 +19,12 @@ export interface ObstacleType {
   x: number;
   y: number;
   speed: number;
+  jumping?: boolean;
+  jumpStart?: number;
+  jumpDirection?: number;
 }
+
+export type Gear = "surfboard" | "bike" | "ship";
 
 export const Game = ({ avatar, onRestart }: GameProps) => {
   const [playerY, setPlayerY] = useState(300);
@@ -33,6 +38,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [followMode, setFollowMode] = useState(false);
 
   const playerX = 100; // Fixed X position for the player
+
+  // Determine current gear based on level
+  const getCurrentGear = (): Gear => {
+    if (level >= 8) return "ship";
+    if (level >= 5) return "bike";
+    return "surfboard";
+  };
+
+  const currentGear = getCurrentGear();
 
   // Check if 10 seconds have passed to enable follow mode
   useEffect(() => {
@@ -62,19 +76,42 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [playerY, gameOver]);
 
-  // Generate obstacles
+  // Generate obstacles with level-based logic
   const generateObstacle = useCallback(() => {
     const types: ("shark" | "whale" | "octopus" | "rock")[] = ["shark", "whale", "octopus", "rock"];
-    const type = types[Math.floor(Math.random() * types.length)];
+    let type = types[Math.floor(Math.random() * types.length)];
     
-    return {
+    // Increase octopus spawn rate after level 5
+    if (level >= 5 && Math.random() < 0.4) {
+      type = "octopus";
+    }
+    
+    let speed = gameSpeed + Math.random() * 2;
+    
+    // Level-based speed increases for sharks and whales
+    if (type === "shark") {
+      speed *= (1 + level * 0.3);
+    } else if (type === "whale") {
+      speed *= (1 + level * 0.25);
+    }
+    
+    const obstacle: ObstacleType = {
       id: Math.random().toString(),
       type,
       x: 1200,
       y: Math.random() * 400 + 100,
-      speed: gameSpeed + Math.random() * 2,
+      speed,
     };
-  }, [gameSpeed]);
+
+    // Add jumping behavior for whales
+    if (type === "whale" && Math.random() < 0.3) {
+      obstacle.jumping = true;
+      obstacle.jumpStart = Date.now();
+      obstacle.jumpDirection = Math.random() < 0.5 ? -1 : 1;
+    }
+    
+    return obstacle;
+  }, [gameSpeed, level]);
 
   // Game loop
   useEffect(() => {
@@ -88,8 +125,23 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
             let newX = obstacle.x - obstacle.speed;
             let newY = obstacle.y;
             
+            // Handle whale jumping animation
+            if (obstacle.type === "whale" && obstacle.jumping && obstacle.jumpStart) {
+              const jumpDuration = Date.now() - obstacle.jumpStart;
+              if (jumpDuration < 3000) { // 3 second jump
+                const jumpProgress = jumpDuration / 3000;
+                const jumpHeight = Math.sin(jumpProgress * Math.PI) * 100;
+                newY = obstacle.y + (obstacle.jumpDirection || 1) * jumpHeight;
+              } else {
+                // End jump
+                obstacle.jumping = false;
+                obstacle.jumpStart = undefined;
+                obstacle.jumpDirection = undefined;
+              }
+            }
+            
             // If follow mode is active, make obstacles move towards player
-            if (followMode) {
+            if (followMode && !obstacle.jumping) {
               const deltaY = playerY - obstacle.y;
               const followSpeed = 1.5;
               newY += Math.sign(deltaY) * Math.min(Math.abs(deltaY), followSpeed);
@@ -176,30 +228,27 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         
         {/* Animated wave layers */}
         <div 
-          className="absolute w-[150%] h-32 bg-gradient-to-r from-blue-300 to-cyan-300 opacity-70 animate-pulse" 
+          className="absolute w-[150%] h-32 bg-gradient-to-r from-blue-300 to-cyan-300 opacity-70 animate-pulse wave1" 
           style={{ 
             bottom: '0%', 
             left: '-25%',
             clipPath: 'polygon(0 30px, 100% 0px, 100% 100%, 0% 100%)',
-            animation: 'wave1 6s ease-in-out infinite'
           }} 
         />
         <div 
-          className="absolute w-[150%] h-24 bg-gradient-to-r from-blue-200 to-cyan-200 opacity-60" 
+          className="absolute w-[150%] h-24 bg-gradient-to-r from-blue-200 to-cyan-200 opacity-60 wave2" 
           style={{ 
             bottom: '8%', 
             left: '-30%',
             clipPath: 'polygon(0 20px, 100% 0px, 100% 100%, 0% 100%)',
-            animation: 'wave2 8s ease-in-out infinite reverse'
           }} 
         />
         <div 
-          className="absolute w-[150%] h-20 bg-gradient-to-r from-white to-cyan-100 opacity-50" 
+          className="absolute w-[150%] h-20 bg-gradient-to-r from-white to-cyan-100 opacity-50 wave3" 
           style={{ 
             bottom: '15%', 
             left: '-20%',
             clipPath: 'polygon(0 15px, 100% 0px, 100% 100%, 0% 100%)',
-            animation: 'wave3 4s ease-in-out infinite'
           }} 
         />
         
@@ -224,6 +273,13 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <Lives lives={lives} />
       <Score score={score} level={level} />
 
+      {/* Gear upgrade notification */}
+      {(level === 5 || level === 8) && (
+        <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black px-6 py-3 rounded-lg font-bold text-xl animate-bounce">
+          GEAR UPGRADE! Now using {currentGear.toUpperCase()}!
+        </div>
+      )}
+
       {/* Follow mode indicator */}
       {followMode && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold animate-pulse">
@@ -232,7 +288,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       )}
 
       {/* Player */}
-      <Player avatar={avatar} x={playerX} y={playerY} />
+      <Player avatar={avatar} x={playerX} y={playerY} gear={currentGear} />
 
       {/* Obstacles */}
       {obstacles.map(obstacle => (
@@ -241,24 +297,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
       {/* Instructions */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg font-bold drop-shadow-lg">
-        Use ↑↓ Arrow Keys to Move
+        Use ↑↓ Arrow Keys to Move - Level {level} ({currentGear.toUpperCase()})
       </div>
-
-      {/* CSS for wave animations */}
-      <style jsx>{`
-        @keyframes wave1 {
-          0%, 100% { transform: translateX(0) scaleY(1); }
-          50% { transform: translateX(-10px) scaleY(1.1); }
-        }
-        @keyframes wave2 {
-          0%, 100% { transform: translateX(0) scaleY(1); }
-          50% { transform: translateX(15px) scaleY(0.9); }
-        }
-        @keyframes wave3 {
-          0%, 100% { transform: translateX(0) scaleY(1); }
-          50% { transform: translateX(-5px) scaleY(1.2); }
-        }
-      `}</style>
     </div>
   );
 };
