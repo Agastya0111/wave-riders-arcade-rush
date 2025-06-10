@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Avatar } from "@/pages/Index";
 import { Player } from "./Player";
@@ -6,6 +5,8 @@ import { Obstacle } from "./Obstacle";
 import { Lives } from "./Lives";
 import { Score } from "./Score";
 import { GameOver } from "./GameOver";
+import { StoryPopup } from "./StoryPopup";
+import { Victory } from "./Victory";
 import { checkCollision } from "@/utils/gameUtils";
 
 interface GameProps {
@@ -36,6 +37,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [gameSpeed, setGameSpeed] = useState(3);
   const [gameStartTime] = useState(Date.now());
   const [followMode, setFollowMode] = useState(false);
+  const [showStoryPopup, setShowStoryPopup] = useState(false);
+  const [storyShown, setStoryShown] = useState(false);
+  const [victory, setVictory] = useState(false);
 
   const playerX = 100; // Fixed X position for the player
 
@@ -60,10 +64,24 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => clearInterval(checkFollowMode);
   }, [gameStartTime, followMode]);
 
+  // Show story popup at level 7
+  useEffect(() => {
+    if (level === 7 && !storyShown && !showStoryPopup) {
+      setShowStoryPopup(true);
+    }
+  }, [level, storyShown, showStoryPopup]);
+
+  // Check victory condition at level 10
+  useEffect(() => {
+    if (level >= 10 && lives >= 3 && score >= 50000) {
+      setVictory(true);
+    }
+  }, [level, lives, score]);
+
   // Handle player movement
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (gameOver) return;
+      if (gameOver || victory || showStoryPopup) return;
       
       if (e.key === "ArrowUp" && playerY > 50) {
         setPlayerY(prev => Math.max(50, prev - 60));
@@ -74,7 +92,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [playerY, gameOver]);
+  }, [playerY, gameOver, victory, showStoryPopup]);
 
   // Generate obstacles with level-based logic
   const generateObstacle = useCallback(() => {
@@ -115,7 +133,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   // Game loop
   useEffect(() => {
-    if (gameOver) return;
+    if (gameOver || victory || showStoryPopup) return;
 
     const gameLoop = setInterval(() => {
       // Move obstacles
@@ -168,7 +186,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(gameLoop);
-  }, [gameOver, generateObstacle, followMode, playerY]);
+  }, [gameOver, victory, showStoryPopup, generateObstacle, followMode, playerY]);
 
   // Level progression
   useEffect(() => {
@@ -199,28 +217,53 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     });
   }, [obstacles, playerX, playerY]);
 
+  const handleStoryClose = () => {
+    setShowStoryPopup(false);
+    setStoryShown(true);
+  };
+
+  const handleRestart = () => {
+    setPlayerY(300);
+    setObstacles([]);
+    setLives(3);
+    setScore(0);
+    setLevel(1);
+    setGameSpeed(3);
+    setGameOver(false);
+    setFollowMode(false);
+    setShowStoryPopup(false);
+    setStoryShown(false);
+    setVictory(false);
+  };
+
+  if (victory) {
+    return (
+      <Victory 
+        score={score}
+        onPlayAgain={handleRestart}
+        onChooseAvatar={onRestart}
+      />
+    );
+  }
+
   if (gameOver) {
+    const rescueMission = level >= 7;
     return (
       <GameOver 
         score={score} 
         level={level} 
-        onRestart={() => {
-          setPlayerY(300);
-          setObstacles([]);
-          setLives(3);
-          setScore(0);
-          setLevel(1);
-          setGameSpeed(3);
-          setGameOver(false);
-          setFollowMode(false);
-        }}
+        onRestart={handleRestart}
         onChooseAvatar={onRestart}
+        rescueMission={rescueMission}
       />
     );
   }
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden">
+      {/* Show story popup */}
+      {showStoryPopup && <StoryPopup onContinue={handleStoryClose} />}
+
       {/* Realistic ocean background with multiple wave layers */}
       <div className="absolute inset-0">
         {/* Deep ocean layer */}
@@ -273,9 +316,30 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <Lives lives={lives} />
       <Score score={score} level={level} />
 
+      {/* Pirate ship appears from level 7 */}
+      {level >= 7 && (
+        <div className="absolute top-4 right-4 text-6xl animate-bounce">
+          🏴‍☠️
+        </div>
+      )}
+
+      {/* Rescue mission indicator */}
+      {level >= 7 && level < 10 && (
+        <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold animate-pulse">
+          RESCUE MISSION: Save your friend!
+        </div>
+      )}
+
+      {/* Final level indicator */}
+      {level >= 10 && (
+        <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold animate-bounce">
+          FINAL LEVEL: Reach the pirate ship with 3+ lives!
+        </div>
+      )}
+
       {/* Gear upgrade notification */}
       {(level === 5 || level === 8) && (
-        <div className="absolute top-32 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black px-6 py-3 rounded-lg font-bold text-xl animate-bounce">
+        <div className="absolute top-48 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-black px-6 py-3 rounded-lg font-bold text-xl animate-bounce">
           GEAR UPGRADE! Now using {currentGear.toUpperCase()}!
         </div>
       )}
