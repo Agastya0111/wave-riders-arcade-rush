@@ -14,6 +14,8 @@ import { DolphinHelper } from "./DolphinHelper";
 import { checkCollision } from "@/utils/gameUtils";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useTouchControls } from "@/hooks/useTouchControls";
+import { supabase } from "@/utils/supabaseClient"; // ✅ Supabase client import
+import { useAuth } from "@/hooks/useAuth"; // ✅ Hook to access the logged-in user
 
 interface GameProps {
   avatar: Avatar;
@@ -50,34 +52,29 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [lastObstacleSpawn, setLastObstacleSpawn] = useState(0);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
-  const playerX = 100; // Fixed X position for the player
+  const playerX = 100;
 
-  // Follow mode (danger mode) is now based on level instead of time
+  const { user } = useAuth(); // ✅ Get the logged-in user
+
   const followMode = level >= 5;
-
-  // Game is paused when story popup is shown
   const gamePaused = showStoryPopup;
 
-  // Determine current gear based on level
   const getCurrentGear = (): Gear => {
     if (level >= 8) return "ship";
     if (level >= 5) return "bike";
     return "surfboard";
   };
-
   const currentGear = getCurrentGear();
 
-  // Check if obstacles are too close to each other
   const isObstacleTooClose = (newY: number, newX: number) => {
     return obstacles.some(obstacle => {
       const distance = Math.sqrt(
         Math.pow(obstacle.x - newX, 2) + Math.pow(obstacle.y - newY, 2)
       );
-      return distance < 120; // Minimum distance between obstacles
+      return distance < 120;
     });
   };
 
-  // Movement functions
   const moveUp = () => {
     if (gameOver || victory || gamePaused) return;
     setPlayerY(prev => Math.max(50, prev - 60));
@@ -92,124 +89,94 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     if (speedBoostCount > 0 && !speedBoost && !gamePaused) {
       setSpeedBoost(true);
       setSpeedBoostCount(prev => prev - 1);
-      setTimeout(() => setSpeedBoost(false), 3000); // 3 second boost
+      setTimeout(() => setSpeedBoost(false), 3000);
     }
   };
 
   const handleDolphinSave = () => {
     if (lives > 0) {
-      setLives(prev => Math.min(3, prev + 1)); // Add a life, max 3
+      setLives(prev => Math.min(3, prev + 1));
     }
   };
 
-  // Use custom hooks for game logic and touch controls
-  const { generateObstacle } = useGameLogic({ 
-    level, 
-    gameSpeed, 
-    speedBoost 
-  });
-
-  const { 
-    handleTouchStart, 
-    handleTouchMove, 
-    handleTouchEnd 
-  } = useTouchControls({
+  const { generateObstacle } = useGameLogic({ level, gameSpeed, speedBoost });
+  const { handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
     moveUp,
     moveDown,
     activateSpeedBoost
   });
 
-  // Show story popup at level 7
   useEffect(() => {
     if (level === 7 && !storyShown && !showStoryPopup) {
       setShowStoryPopup(true);
     }
   }, [level, storyShown, showStoryPopup]);
 
-  // Check victory condition at level 10
   useEffect(() => {
     if (level >= 10 && lives >= 3 && score >= 50000) {
       setVictory(true);
     }
   }, [level, lives, score]);
 
-  // Handle player movement with keyboard
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (gameOver || victory || gamePaused) return;
-      
-      if (e.key === "ArrowUp") {
-        moveUp();
-      } else if (e.key === "ArrowDown") {
-        moveDown();
-      } else if (e.key === " " || e.key === "Spacebar") {
+      if (e.key === "ArrowUp") moveUp();
+      else if (e.key === "ArrowDown") moveDown();
+      else if (e.key === " " || e.key === "Spacebar") {
         e.preventDefault();
         activateSpeedBoost();
       }
     };
-
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [speedBoostCount, speedBoost, gamePaused]);
 
-  // Game loop
   useEffect(() => {
     if (gameOver || victory || gamePaused) return;
 
     const gameLoop = setInterval(() => {
       const currentTime = Date.now();
-      
-      // Move obstacles
+
       setObstacles(prev => {
         const updated = prev
           .map(obstacle => {
             let newX = obstacle.x - obstacle.speed;
             let newY = obstacle.y;
-            
-            // Handle whale jumping animation
+
             if (obstacle.type === "whale" && obstacle.jumping && obstacle.jumpStart) {
               const jumpDuration = Date.now() - obstacle.jumpStart;
-              if (jumpDuration < 3000) { // 3 second jump
+              if (jumpDuration < 3000) {
                 const jumpProgress = jumpDuration / 3000;
                 const jumpHeight = Math.sin(jumpProgress * Math.PI) * 100;
                 newY = obstacle.y + (obstacle.jumpDirection || 1) * jumpHeight;
               } else {
-                // End jump
                 obstacle.jumping = false;
                 obstacle.jumpStart = undefined;
                 obstacle.jumpDirection = undefined;
               }
             }
-            
-            // If follow mode is active (level 5+), make obstacles move towards player
+
             if (followMode && !obstacle.jumping) {
               const deltaY = playerY - obstacle.y;
               const followSpeed = 1.5;
               newY += Math.sign(deltaY) * Math.min(Math.abs(deltaY), followSpeed);
             }
-            
-            return {
-              ...obstacle,
-              x: newX,
-              y: newY,
-            };
+
+            return { ...obstacle, x: newX, y: newY };
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Spawn new obstacles with minimum timing for levels 1-4
         let shouldSpawn = false;
-        
+
         if (level <= 4) {
-          // Minimum spawn every 4-6 seconds for levels 1-4
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 4000 + Math.random() * 2000; // 4-6 seconds
-          
+          const minSpawnInterval = 4000 + Math.random() * 2000;
           if (timeSinceLastSpawn > minSpawnInterval) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);
           }
         } else {
-          // Original spawn rate for levels 5+
           if (Math.random() < 0.02) {
             shouldSpawn = true;
           }
@@ -218,17 +185,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         if (shouldSpawn) {
           let attempts = 0;
           let newObstacle;
-          
-          // Try to generate obstacle that's not too close to others
           do {
             newObstacle = generateObstacle();
             attempts++;
           } while (
-            attempts < 5 && 
-            level <= 4 && 
+            attempts < 5 &&
+            level <= 4 &&
             isObstacleTooClose(newObstacle.y, newObstacle.x)
           );
-          
+
           if (attempts < 5 || level > 4) {
             updated.push(newObstacle);
           }
@@ -237,14 +202,12 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         return updated;
       });
 
-      // Increase score
       setScore(prev => prev + 10);
-    }, 16); // ~60 FPS
+    }, 16);
 
     return () => clearInterval(gameLoop);
   }, [gameOver, victory, gamePaused, generateObstacle, followMode, playerY, level, lastObstacleSpawn]);
 
-  // Level progression
   useEffect(() => {
     const newLevel = Math.floor(score / 5000) + 1;
     if (newLevel > level) {
@@ -253,15 +216,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   }, [score, level]);
 
-  // Collision detection
   useEffect(() => {
     if (gamePaused) return;
-    
     obstacles.forEach(obstacle => {
-      if (checkCollision(
-        { x: playerX, y: playerY, width: 60, height: 60 },
-        { x: obstacle.x, y: obstacle.y, width: 80, height: 60 }
-      )) {
+      if (
+        checkCollision(
+          { x: playerX, y: playerY, width: 60, height: 60 },
+          { x: obstacle.x, y: obstacle.y, width: 80, height: 60 }
+        )
+      ) {
         setLives(prev => {
           const newLives = prev - 1;
           if (newLives <= 0) {
@@ -269,11 +232,32 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           }
           return newLives;
         });
-        // Remove the obstacle that caused collision
         setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
       }
     });
   }, [obstacles, playerX, playerY, gamePaused]);
+
+  // ✅ Save score to Supabase on Game Over or Victory
+  useEffect(() => {
+    const saveGameSession = async () => {
+      if (!user) return;
+      const { error } = await supabase.from("game_sessions").insert({
+        user_id: user.id,
+        score,
+        level_reached: level,
+        avatar
+      });
+      if (error) {
+        console.error("Error saving game session:", error);
+      } else {
+        console.log("Game session saved.");
+      }
+    };
+
+    if ((gameOver || victory) && user) {
+      saveGameSession();
+    }
+  }, [gameOver, victory]);
 
   const handleStoryClose = () => {
     setShowStoryPopup(false);
@@ -298,7 +282,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   if (victory) {
     return (
-      <Victory 
+      <Victory
         score={score}
         onPlayAgain={handleRestart}
         onChooseAvatar={onRestart}
@@ -309,9 +293,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   if (gameOver) {
     const rescueMission = level >= 7;
     return (
-      <GameOver 
-        score={score} 
-        level={level} 
+      <GameOver
+        score={score}
+        level={level}
         onRestart={handleRestart}
         onChooseAvatar={onRestart}
         rescueMission={rescueMission}
@@ -320,55 +304,38 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   }
 
   return (
-    <div 
+    <div
       ref={gameAreaRef}
       className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Show story popup - this pauses the game */}
       {showStoryPopup && <StoryPopup onContinue={handleStoryClose} />}
-
-      {/* Game Background */}
       <GameBackground />
-
-      {/* UI Elements */}
       <Lives lives={lives} />
       <Score score={score} level={level} />
-
-      {/* Dolphin Helper System */}
-      <DolphinHelper 
+      <DolphinHelper
         lives={lives}
         onSave={handleDolphinSave}
         gameOver={gameOver}
         gamePaused={gamePaused}
       />
-
-      {/* Game UI indicators */}
-      <GameUI 
+      <GameUI
         level={level}
         followMode={followMode}
         currentGear={currentGear}
         speedBoost={speedBoost}
       />
-
-      {/* Touch Controls */}
-      <TouchControls 
+      <TouchControls
         speedBoostCount={speedBoostCount}
         speedBoost={speedBoost}
         onSpeedBoost={activateSpeedBoost}
       />
-
-      {/* Player */}
       <Player avatar={avatar} x={playerX} y={playerY} gear={currentGear} />
-
-      {/* Obstacles */}
       {obstacles.map(obstacle => (
         <Obstacle key={obstacle.id} obstacle={obstacle} />
       ))}
-
-      {/* Instructions */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm md:text-lg font-bold drop-shadow-lg text-center">
         <div className="hidden md:block">
           Use ↑↓ Arrow Keys to Move, Space for Speed Boost, Ctrl+D for Dolphin - Level {level} ({currentGear.toUpperCase()})
@@ -380,3 +347,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     </div>
   );
 };
+
+
+
