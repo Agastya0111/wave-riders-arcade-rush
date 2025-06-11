@@ -101,6 +101,19 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Mobile responsive adjustments */
+  html, body {
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #root {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
 }
 
 /* Wave animations for ocean background */
@@ -129,4 +142,50 @@
 
 .wave3 {
   animation: wave3 4s ease-in-out infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Ensure game canvas fits mobile screens */
+  .game-container {
+    height: 100vh;
+    width: 100vw;
+    max-height: 100vh;
+    max-width: 100vw;
+  }
+
+  /* Touch-friendly button sizing */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Compact UI for landscape mobile */
+  .absolute.top-4 {
+    top: 0.5rem;
+  }
+  
+  .absolute.bottom-4 {
+    bottom: 0.5rem;
+  }
+}
+
+/* Portrait mobile optimization */
+@media (max-width: 480px) and (orientation: portrait) {
+  /* Adjust for portrait phones */
+  .text-lg {
+    font-size: 0.875rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+  }
 }

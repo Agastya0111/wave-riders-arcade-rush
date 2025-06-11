@@ -11,6 +11,7 @@ import { Victory } from "./Victory";
 import { GameBackground } from "./GameBackground";
 import { GameUI } from "./GameUI";
 import { TouchControls } from "./TouchControls";
+import { DolphinHelper } from "./DolphinHelper";
 import { checkCollision } from "@/utils/gameUtils";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useTouchControls } from "@/hooks/useTouchControls";
@@ -53,6 +54,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   // Follow mode (danger mode) is now based on level instead of time
   const followMode = level >= 5;
 
+  // Game is paused when story popup is shown
+  const gamePaused = showStoryPopup;
+
   // Determine current gear based on level
   const getCurrentGear = (): Gear => {
     if (level >= 8) return "ship";
@@ -64,20 +68,26 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   // Movement functions
   const moveUp = () => {
-    if (gameOver || victory || showStoryPopup) return;
+    if (gameOver || victory || gamePaused) return;
     setPlayerY(prev => Math.max(50, prev - 60));
   };
 
   const moveDown = () => {
-    if (gameOver || victory || showStoryPopup) return;
+    if (gameOver || victory || gamePaused) return;
     setPlayerY(prev => Math.min(550, prev + 60));
   };
 
   const activateSpeedBoost = () => {
-    if (speedBoostCount > 0 && !speedBoost) {
+    if (speedBoostCount > 0 && !speedBoost && !gamePaused) {
       setSpeedBoost(true);
       setSpeedBoostCount(prev => prev - 1);
       setTimeout(() => setSpeedBoost(false), 3000); // 3 second boost
+    }
+  };
+
+  const handleDolphinSave = () => {
+    if (lives > 0) {
+      setLives(prev => Math.min(3, prev + 1)); // Add a life, max 3
     }
   };
 
@@ -115,7 +125,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   // Handle player movement with keyboard
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (gameOver || victory || showStoryPopup) return;
+      if (gameOver || victory || gamePaused) return;
       
       if (e.key === "ArrowUp") {
         moveUp();
@@ -129,11 +139,11 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [speedBoostCount, speedBoost]);
+  }, [speedBoostCount, speedBoost, gamePaused]);
 
   // Game loop
   useEffect(() => {
-    if (gameOver || victory || showStoryPopup) return;
+    if (gameOver || victory || gamePaused) return;
 
     const gameLoop = setInterval(() => {
       // Move obstacles
@@ -191,7 +201,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(gameLoop);
-  }, [gameOver, victory, showStoryPopup, generateObstacle, followMode, playerY, level]);
+  }, [gameOver, victory, gamePaused, generateObstacle, followMode, playerY, level]);
 
   // Level progression
   useEffect(() => {
@@ -204,6 +214,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   // Collision detection
   useEffect(() => {
+    if (gamePaused) return;
+    
     obstacles.forEach(obstacle => {
       if (checkCollision(
         { x: playerX, y: playerY, width: 60, height: 60 },
@@ -220,7 +232,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
       }
     });
-  }, [obstacles, playerX, playerY]);
+  }, [obstacles, playerX, playerY, gamePaused]);
 
   const handleStoryClose = () => {
     setShowStoryPopup(false);
@@ -273,7 +285,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Show story popup */}
+      {/* Show story popup - this pauses the game */}
       {showStoryPopup && <StoryPopup onContinue={handleStoryClose} />}
 
       {/* Game Background */}
@@ -282,6 +294,14 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       {/* UI Elements */}
       <Lives lives={lives} />
       <Score score={score} level={level} />
+
+      {/* Dolphin Helper System */}
+      <DolphinHelper 
+        lives={lives}
+        onSave={handleDolphinSave}
+        gameOver={gameOver}
+        gamePaused={gamePaused}
+      />
 
       {/* Game UI indicators */}
       <GameUI 
@@ -307,12 +327,12 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       ))}
 
       {/* Instructions */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg font-bold drop-shadow-lg text-center">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm md:text-lg font-bold drop-shadow-lg text-center">
         <div className="hidden md:block">
-          Use ↑↓ Arrow Keys to Move, Space for Speed Boost - Level {level} ({currentGear.toUpperCase()})
+          Use ↑↓ Arrow Keys to Move, Space for Speed Boost, Ctrl+D for Dolphin - Level {level} ({currentGear.toUpperCase()})
         </div>
-        <div className="md:hidden">
-          Level {level} ({currentGear.toUpperCase()}) - Long tap ⚡ for speed boost
+        <div className="md:hidden text-xs">
+          Level {level} ({currentGear.toUpperCase()}) - Swipe to move, tap to jump
         </div>
       </div>
     </div>
