@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Avatar } from "@/pages/Index";
 import { Player } from "./Player";
@@ -30,6 +29,7 @@ export interface ObstacleType {
   jumping?: boolean;
   jumpStart?: number;
   jumpDirection?: number;
+  warning?: boolean;
 }
 
 export type Gear = "surfboard" | "bike" | "ship";
@@ -47,6 +47,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [victory, setVictory] = useState(false);
   const [speedBoost, setSpeedBoost] = useState(false);
   const [speedBoostCount, setSpeedBoostCount] = useState(3);
+  const [lastObstacleSpawn, setLastObstacleSpawn] = useState(0);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const playerX = 100; // Fixed X position for the player
@@ -65,6 +66,16 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   };
 
   const currentGear = getCurrentGear();
+
+  // Check if obstacles are too close to each other
+  const isObstacleTooClose = (newY: number, newX: number) => {
+    return obstacles.some(obstacle => {
+      const distance = Math.sqrt(
+        Math.pow(obstacle.x - newX, 2) + Math.pow(obstacle.y - newY, 2)
+      );
+      return distance < 120; // Minimum distance between obstacles
+    });
+  };
 
   // Movement functions
   const moveUp = () => {
@@ -146,6 +157,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     if (gameOver || victory || gamePaused) return;
 
     const gameLoop = setInterval(() => {
+      const currentTime = Date.now();
+      
       // Move obstacles
       setObstacles(prev => {
         const updated = prev
@@ -183,14 +196,42 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Add new obstacles with level-based frequency
-        let spawnRate = 0.02; // Default spawn rate
-        if (level <= 4) {
-          spawnRate = 0.005; // Much less frequent obstacles for easy levels
-        }
+        // Spawn new obstacles with minimum timing for levels 1-4
+        let shouldSpawn = false;
         
-        if (Math.random() < spawnRate) {
-          updated.push(generateObstacle());
+        if (level <= 4) {
+          // Minimum spawn every 4-6 seconds for levels 1-4
+          const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
+          const minSpawnInterval = 4000 + Math.random() * 2000; // 4-6 seconds
+          
+          if (timeSinceLastSpawn > minSpawnInterval) {
+            shouldSpawn = true;
+            setLastObstacleSpawn(currentTime);
+          }
+        } else {
+          // Original spawn rate for levels 5+
+          if (Math.random() < 0.02) {
+            shouldSpawn = true;
+          }
+        }
+
+        if (shouldSpawn) {
+          let attempts = 0;
+          let newObstacle;
+          
+          // Try to generate obstacle that's not too close to others
+          do {
+            newObstacle = generateObstacle();
+            attempts++;
+          } while (
+            attempts < 5 && 
+            level <= 4 && 
+            isObstacleTooClose(newObstacle.y, newObstacle.x)
+          );
+          
+          if (attempts < 5 || level > 4) {
+            updated.push(newObstacle);
+          }
         }
 
         return updated;
@@ -201,7 +242,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }, 16); // ~60 FPS
 
     return () => clearInterval(gameLoop);
-  }, [gameOver, victory, gamePaused, generateObstacle, followMode, playerY, level]);
+  }, [gameOver, victory, gamePaused, generateObstacle, followMode, playerY, level, lastObstacleSpawn]);
 
   // Level progression
   useEffect(() => {
@@ -252,6 +293,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setVictory(false);
     setSpeedBoost(false);
     setSpeedBoostCount(3);
+    setLastObstacleSpawn(0);
   };
 
   if (victory) {

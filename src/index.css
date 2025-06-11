@@ -132,6 +132,40 @@
   50% { transform: translateX(-5px) scaleY(1.2); }
 }
 
+/* New caustic light animation */
+@keyframes caustics {
+  0% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: scale(1.1) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% { 
+    transform: scale(1) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+/* Floating particle animations */
+@keyframes float1 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  33% { transform: translateY(-10px) translateX(5px); }
+  66% { transform: translateY(5px) translateX(-3px); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-15px) translateX(-5px); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-5px) translateX(8px); }
+  75% { transform: translateY(-12px) translateX(-2px); }
+}
+
 .wave1 {
   animation: wave1 6s ease-in-out infinite;
 }
@@ -167,7 +201,7 @@
 }
 
 /* Landscape mobile optimization */
-@media (max-height: 500px) and (orientation: landscape) {
+@keyframes-height: 500px) and (orientation: landscape) {
   /* Compact UI for landscape mobile */
   .absolute.top-4 {
     top: 0.5rem;

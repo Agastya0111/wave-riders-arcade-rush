@@ -38,6 +38,9 @@ export const Obstacle = ({ obstacle }: ObstacleProps) => {
     rotationAngle += Math.sin(Date.now() * 0.01) * 20;
   }
 
+  // Show warning ripples for obstacles with warning enabled (levels 1-4)
+  const showWarning = obstacle.warning && obstacle.x > 800;
+
   return (
     <div
       className={`absolute ${obstacleColors[obstacle.type]} ${obstacleShadows[obstacle.type]} rounded-xl border-2 border-white/20 flex items-center justify-center transition-all duration-300 hover:scale-110`}
@@ -57,6 +60,15 @@ export const Obstacle = ({ obstacle }: ObstacleProps) => {
       {/* Particle trail for moving obstacles */}
       {obstacle.type !== "rock" && (
         <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-1 bg-white/30 rounded-full animate-pulse" />
+      )}
+      
+      {/* Warning ripples for levels 1-4 */}
+      {showWarning && (
+        <>
+          <div className="absolute -left-16 top-1/2 transform -translate-y-1/2 w-4 h-4 border-2 border-yellow-400/60 rounded-full animate-ping" />
+          <div className="absolute -left-24 top-1/2 transform -translate-y-1/2 w-6 h-6 border-2 border-yellow-300/40 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
+          <div className="absolute -left-32 top-1/2 transform -translate-y-1/2 w-8 h-8 border-2 border-yellow-200/20 rounded-full animate-ping" style={{ animationDelay: '0.4s' }} />
+        </>
       )}
       
       {/* Special effects for jumping whales */}

@@ -13,6 +13,14 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
     const types: ("shark" | "whale" | "octopus" | "rock")[] = ["shark", "whale", "octopus", "rock"];
     let type = types[Math.floor(Math.random() * types.length)];
     
+    // For levels 1-4, use simpler obstacle types more often
+    if (level <= 4) {
+      const easyTypes: ("shark" | "rock")[] = ["shark", "rock"];
+      if (Math.random() < 0.7) {
+        type = easyTypes[Math.floor(Math.random() * easyTypes.length)];
+      }
+    }
+    
     // Increase octopus spawn rate after level 5
     if (level >= 5 && Math.random() < 0.4) {
       type = "octopus";
@@ -20,9 +28,15 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
     
     let speed = gameSpeed;
     
-    // For levels 1-4, make obstacles very slow and negligible
+    // Progressive speed increases for levels 1-4
     if (level <= 4) {
-      speed = gameSpeed * 0.3; // Much slower obstacles
+      const levelSpeeds = {
+        1: gameSpeed * 0.6, // Little fast but easy
+        2: gameSpeed * 0.7, // Slightly faster but easy
+        3: gameSpeed * 0.8, // Medium
+        4: gameSpeed * 0.9  // Faster (but still not difficult)
+      };
+      speed = levelSpeeds[level as keyof typeof levelSpeeds];
     } else {
       speed = gameSpeed + Math.random() * 2;
     }
@@ -41,12 +55,21 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
       }
     }
     
+    // Randomize Y position with some safe zones for levels 1-4
+    let yPosition = Math.random() * 400 + 100;
+    if (level <= 4) {
+      // Create safe lanes for easier navigation
+      const lanes = [150, 250, 350, 450];
+      yPosition = lanes[Math.floor(Math.random() * lanes.length)] + (Math.random() - 0.5) * 40;
+    }
+    
     const obstacle: ObstacleType = {
       id: Math.random().toString(),
       type,
       x: 1200,
-      y: Math.random() * 400 + 100,
+      y: yPosition,
       speed,
+      warning: level <= 4, // Add warning for levels 1-4
     };
 
     // Add jumping behavior for whales (only after level 4)
