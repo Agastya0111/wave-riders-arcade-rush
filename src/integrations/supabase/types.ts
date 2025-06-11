@@ -9,10 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          dolphins_used: number
+          duration_seconds: number
+          id: string
+          level_reached: number
+          lives_used: number
+          score: number
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          dolphins_used?: number
+          duration_seconds?: number
+          id?: string
+          level_reached?: number
+          lives_used?: number
+          score?: number
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          dolphins_used?: number
+          duration_seconds?: number
+          id?: string
+          level_reached?: number
+          lives_used?: number
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_statistics: {
+        Row: {
+          average_duration_seconds: number | null
+          average_score: number | null
+          highest_score: number | null
+          id: string
+          most_common_avatar: string | null
+          total_games_played: number
+          total_players: number
+          updated_at: string
+        }
+        Insert: {
+          average_duration_seconds?: number | null
+          average_score?: number | null
+          highest_score?: number | null
+          id?: string
+          most_common_avatar?: string | null
+          total_games_played?: number
+          total_players?: number
+          updated_at?: string
+        }
+        Update: {
+          average_duration_seconds?: number | null
+          average_score?: number | null
+          highest_score?: number | null
+          id?: string
+          most_common_avatar?: string | null
+          total_games_played?: number
+          total_players?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_type: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_type?: string | null
+          created_at?: string
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_type?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          avatar_type: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          level_reached: number | null
+          score: number | null
+          username: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
