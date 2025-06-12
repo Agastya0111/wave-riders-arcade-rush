@@ -14,8 +14,8 @@ import { DolphinHelper } from "./DolphinHelper";
 import { checkCollision } from "@/utils/gameUtils";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useTouchControls } from "@/hooks/useTouchControls";
-import { supabase } from "@/utils/supabaseClient"; // ✅ Supabase client import
-import { useAuth } from "@/hooks/useAuth"; // ✅ Hook to access the logged-in user
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GameProps {
   avatar: Avatar;
@@ -257,7 +257,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     if ((gameOver || victory) && user) {
       saveGameSession();
     }
-  }, [gameOver, victory]);
+  }, [gameOver, victory, user, score, level, avatar]);
 
   const handleStoryClose = () => {
     setShowStoryPopup(false);
@@ -347,6 +347,3 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     </div>
   );
 };
-
-
-
