@@ -11,6 +11,7 @@ export type Avatar = "boy" | "girl" | "robot" | "shark" | "alien";
 const AppContent = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
   const [gameState, setGameState] = useState<'menu' | 'avatarSelection' | 'playing'>('menu');
+  const [guestMode, setGuestMode] = useState(false);
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -21,14 +22,24 @@ const AppContent = () => {
     );
   }
 
-  if (!user) {
-    return <AuthPage onAuthSuccess={() => {}} />;
+  // Allow guest mode or authenticated users
+  if (!user && !guestMode) {
+    return (
+      <AuthPage 
+        onAuthSuccess={() => setGameState('menu')}
+        onGuestMode={() => {
+          setGuestMode(true);
+          setGameState('menu');
+        }}
+      />
+    );
   }
 
   if (gameState === 'menu') {
     return (
       <MainMenu 
         onStartGame={() => setGameState('avatarSelection')}
+        isGuest={!user}
       />
     );
   }
@@ -56,7 +67,7 @@ const AppContent = () => {
     );
   }
 
-  return <MainMenu onStartGame={() => setGameState('avatarSelection')} />;
+  return <MainMenu onStartGame={() => setGameState('avatarSelection')} isGuest={!user} />;
 };
 
 const Index = () => {

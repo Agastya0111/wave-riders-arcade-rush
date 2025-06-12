@@ -27,7 +27,7 @@ interface GameProps {
 
 export interface ObstacleType {
   id: string;
-  type: "shark" | "whale" | "octopus" | "rock";
+  type: "shark" | "whale" | "octopus" | "rock" | "jellyfish" | "whirlpool" | "crate" | "seaweed";
   x: number;
   y: number;
   speed: number;

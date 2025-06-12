@@ -178,20 +178,23 @@
   animation: wave3 4s ease-in-out infinite;
 }
 
-/* Mobile optimizations - Enhanced for responsiveness */
+/* Enhanced Mobile optimizations - Fully responsive design */
 @media (max-width: 768px) {
-  /* Ensure game canvas fits mobile screens */
+  /* Ensure game canvas fits mobile screens perfectly */
   .game-container {
     height: 100vh;
     width: 100vw;
     max-height: 100vh;
     max-width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
   }
 
   /* Touch-friendly button sizing */
   button {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 48px;
+    min-width: 48px;
   }
 
   /* Prevent zoom on input focus */
@@ -199,26 +202,41 @@
     font-size: 16px;
   }
 
-  /* Scale UI elements */
+  /* Responsive UI elements using vh/vw units */
   .absolute.top-4.left-4 {
-    top: 1rem;
-    left: 1rem;
-    font-size: 0.875rem;
+    top: 2vh;
+    left: 2vw;
+    font-size: 3vw;
+    max-font-size: 1rem;
   }
 
   .absolute.top-4.right-4 {
-    top: 1rem;
-    right: 1rem;
-    font-size: 0.875rem;
+    top: 2vh;
+    right: 2vw;
+    font-size: 3vw;
+    max-font-size: 1rem;
   }
 
-  /* Scale player and obstacles for mobile */
-  .player-element {
-    transform: scale(0.8);
+  /* Scale UI elements for mobile */
+  .lives-container {
+    font-size: 4vw;
   }
 
-  .obstacle-element {
-    transform: scale(0.8);
+  .score-container {
+    font-size: 3.5vw;
+  }
+
+  /* Mobile-friendly touch controls */
+  .touch-controls {
+    bottom: 4vh;
+    left: 4vw;
+    right: 4vw;
+  }
+
+  /* Responsive text scaling */
+  .game-instructions {
+    font-size: 2.5vw;
+    padding: 1vh 2vw;
   }
 }
 
@@ -226,17 +244,22 @@
 @media (max-height: 500px) and (orientation: landscape) {
   /* Compact UI for landscape mobile */
   .absolute.top-4 {
-    top: 0.5rem;
+    top: 1vh;
   }
   
   .absolute.bottom-4 {
-    bottom: 0.5rem;
+    bottom: 1vh;
   }
 
   /* Make UI smaller in landscape */
   .absolute.top-4.left-4,
   .absolute.top-4.right-4 {
-    font-size: 0.75rem;
+    font-size: 2vh;
+  }
+
+  .lives-container,
+  .score-container {
+    font-size: 2.5vh;
   }
 }
 
@@ -244,20 +267,25 @@
 @media (max-width: 480px) and (orientation: portrait) {
   /* Adjust for portrait phones */
   .text-lg {
-    font-size: 0.875rem;
+    font-size: 4vw;
   }
   
   .text-2xl {
-    font-size: 1.25rem;
+    font-size: 6vw;
   }
 
-  /* Responsive viewport units */
-  .w-full {
-    width: 100vw;
+  /* Ensure no horizontal scrolling */
+  body {
+    overflow-x: hidden;
   }
 
-  .h-screen {
+  /* Full viewport utilization */
+  .game-area {
     height: 100vh;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
   }
 }
 
@@ -265,23 +293,46 @@
 @media (max-width: 320px) {
   .absolute.top-4.left-4,
   .absolute.top-4.right-4 {
-    font-size: 0.75rem;
-    padding: 0.5rem;
+    font-size: 3vw;
+    padding: 1vh 1vw;
   }
 
   .text-xs {
-    font-size: 0.625rem;
+    font-size: 2.5vw;
+  }
+
+  /* Ensure minimum touch target sizes */
+  button {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
-/* Ensure proper scaling for all viewport sizes */
+/* Ensure proper scaling for large screens */
 @media (min-width: 1920px) {
   /* Scale up for very large screens */
-  .player-element {
+  .game-element {
     transform: scale(1.2);
   }
+}
 
-  .obstacle-element {
-    transform: scale(1.2);
+/* Safe area handling for mobile devices with notches */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .game-ui-top {
+    padding-top: max(2vh, env(safe-area-inset-top));
   }
+  
+  .game-ui-bottom {
+    padding-bottom: max(2vh, env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent text selection and context menus on game elements */
+.game-area, .game-area * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }

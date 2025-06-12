@@ -10,6 +10,10 @@ const obstacleEmojis = {
   whale: "🐋", 
   octopus: "🐙",
   rock: "🪨",
+  jellyfish: "🪼",
+  whirlpool: "🌀",
+  crate: "📦",
+  seaweed: "🌿",
 };
 
 const obstacleColors = {
@@ -17,6 +21,10 @@ const obstacleColors = {
   whale: "bg-gradient-to-r from-blue-700 to-blue-900",
   octopus: "bg-gradient-to-r from-purple-600 to-purple-800",
   rock: "bg-gradient-to-r from-gray-600 to-gray-800",
+  jellyfish: "bg-gradient-to-r from-pink-400 to-pink-600",
+  whirlpool: "bg-gradient-to-r from-cyan-500 to-blue-600",
+  crate: "bg-gradient-to-r from-amber-600 to-amber-800",
+  seaweed: "bg-gradient-to-r from-green-500 to-green-700",
 };
 
 const obstacleShadows = {
@@ -24,6 +32,10 @@ const obstacleShadows = {
   whale: "shadow-lg shadow-blue-500/50",
   octopus: "shadow-lg shadow-purple-500/50", 
   rock: "shadow-lg shadow-gray-500/50",
+  jellyfish: "shadow-lg shadow-pink-500/50",
+  whirlpool: "shadow-lg shadow-cyan-500/50",
+  crate: "shadow-lg shadow-amber-500/50",
+  seaweed: "shadow-lg shadow-green-500/50",
 };
 
 export const Obstacle = ({ obstacle }: ObstacleProps) => {
@@ -36,6 +48,11 @@ export const Obstacle = ({ obstacle }: ObstacleProps) => {
   if (obstacle.type === "whale" && obstacle.jumping) {
     scaleTransform = "scale(1.2)";
     rotationAngle += Math.sin(Date.now() * 0.01) * 20;
+  }
+
+  // Special rotation for whirlpool
+  if (obstacle.type === "whirlpool") {
+    rotationAngle = (Date.now() * 0.01) % 360;
   }
 
   // Show warning ripples for obstacles with warning enabled (levels 1-4)
@@ -58,7 +75,7 @@ export const Obstacle = ({ obstacle }: ObstacleProps) => {
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-300/20 to-blue-300/20 rounded-xl animate-pulse" />
       
       {/* Particle trail for moving obstacles */}
-      {obstacle.type !== "rock" && (
+      {obstacle.type !== "rock" && obstacle.type !== "crate" && (
         <div className="absolute -right-4 top-1/2 transform -translate-y-1/2 w-8 h-1 bg-white/30 rounded-full animate-pulse" />
       )}
       

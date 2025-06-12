@@ -93,12 +93,14 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Improved obstacle spawning for levels 1-4
+        // Enhanced obstacle spawning for levels 1-4 - ensure spawn every 4 seconds max
         let shouldSpawn = false;
         if (level <= 4) {
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 3000 + Math.random() * 2000; // 3-5 seconds
-          if (timeSinceLastSpawn > minSpawnInterval) {
+          const maxSpawnInterval = 4000; // 4 seconds maximum
+          const minSpawnInterval = 2000; // 2 seconds minimum
+          if (timeSinceLastSpawn > maxSpawnInterval || 
+              (timeSinceLastSpawn > minSpawnInterval && Math.random() < 0.3)) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);
           }
@@ -128,7 +130,7 @@ export const useGameLoop = ({
         return updated;
       });
 
-      // Update collectibles
+      // Update collectibles - always spawn for levels 1-4
       setCollectibles(prev => {
         const updated = prev
           .map(collectible => ({
@@ -137,10 +139,10 @@ export const useGameLoop = ({
           }))
           .filter(collectible => collectible.x > -100);
 
-        // Spawn collectibles for levels 1-4
+        // Spawn collectibles more frequently for levels 1-4
         if (level <= 4) {
           const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
-          if (timeSinceLastCollectible > 6000 + Math.random() * 4000) { // 6-10 seconds
+          if (timeSinceLastCollectible > 3000 + Math.random() * 2000) { // 3-5 seconds
             updated.push(generateCollectible());
             setLastCollectibleSpawn(currentTime);
           }

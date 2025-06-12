@@ -18,15 +18,21 @@ export interface CollectibleType {
 
 export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps) => {
   const generateObstacle = useCallback(() => {
-    const types: ("shark" | "whale" | "octopus" | "rock")[] = ["shark", "whale", "octopus", "rock"];
+    const types: ("shark" | "whale" | "octopus" | "rock" | "jellyfish" | "whirlpool" | "crate" | "seaweed")[] = 
+      ["shark", "whale", "octopus", "rock", "jellyfish", "whirlpool", "crate", "seaweed"];
+    
     let type = types[Math.floor(Math.random() * types.length)];
     
-    // For levels 1-4, use simpler obstacle types more often
+    // For levels 1-4, use varied obstacle types with better distribution
     if (level <= 4) {
-      const easyTypes: ("shark" | "rock")[] = ["shark", "rock"];
-      if (Math.random() < 0.7) {
-        type = easyTypes[Math.floor(Math.random() * easyTypes.length)];
-      }
+      const levelTypes = {
+        1: ["jellyfish", "crate", "seaweed"] as ("jellyfish" | "crate" | "seaweed")[],
+        2: ["jellyfish", "crate", "seaweed", "rock"] as ("jellyfish" | "crate" | "seaweed" | "rock")[],
+        3: ["shark", "rock", "whirlpool", "crate"] as ("shark" | "rock" | "whirlpool" | "crate")[],
+        4: ["shark", "whale", "octopus", "rock"] as ("shark" | "whale" | "octopus" | "rock")[]
+      };
+      const availableTypes = levelTypes[level as keyof typeof levelTypes];
+      type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
     }
     
     // Increase octopus spawn rate after level 5
@@ -34,15 +40,14 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
       type = "octopus";
     }
     
+    // Progressive speed increases for levels 1-4
     let speed = gameSpeed;
-    
-    // Progressive speed increases for levels 1-4 with better scaling
     if (level <= 4) {
       const levelSpeeds = {
-        1: gameSpeed * 0.7, // Slower start
-        2: gameSpeed * 0.8, // Slightly faster
-        3: gameSpeed * 0.9, // Medium speed
-        4: gameSpeed * 1.0  // Normal speed
+        1: gameSpeed * 0.5, // Very slow
+        2: gameSpeed * 0.65, // Slow
+        3: gameSpeed * 0.8, // Moderate
+        4: gameSpeed * 0.95  // Faster
       };
       speed = levelSpeeds[level as keyof typeof levelSpeeds];
     } else {
