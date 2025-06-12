@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+
+import { useRef } from "react";
 import { Avatar } from "@/pages/Index";
 import { Player } from "./Player";
 import { Obstacle } from "./Obstacle";
@@ -11,11 +12,11 @@ import { GameBackground } from "./GameBackground";
 import { GameUI } from "./GameUI";
 import { TouchControls } from "./TouchControls";
 import { DolphinHelper } from "./DolphinHelper";
-import { checkCollision } from "@/utils/gameUtils";
-import { useGameLogic } from "@/hooks/useGameLogic";
 import { useTouchControls } from "@/hooks/useTouchControls";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useGameState } from "@/hooks/useGameState";
+import { useGameEvents } from "@/hooks/useGameEvents";
+import { useGameControls } from "@/hooks/useGameControls";
+import { useGameLoop } from "@/hooks/useGameLoop";
 
 interface GameProps {
   avatar: Avatar;
@@ -37,24 +38,38 @@ export interface ObstacleType {
 export type Gear = "surfboard" | "bike" | "ship";
 
 export const Game = ({ avatar, onRestart }: GameProps) => {
-  const [playerY, setPlayerY] = useState(300);
-  const [obstacles, setObstacles] = useState<ObstacleType[]>([]);
-  const [lives, setLives] = useState(3);
-  const [score, setScore] = useState(0);
-  const [level, setLevel] = useState(1);
-  const [gameOver, setGameOver] = useState(false);
-  const [gameSpeed, setGameSpeed] = useState(3);
-  const [showStoryPopup, setShowStoryPopup] = useState(false);
-  const [storyShown, setStoryShown] = useState(false);
-  const [victory, setVictory] = useState(false);
-  const [speedBoost, setSpeedBoost] = useState(false);
-  const [speedBoostCount, setSpeedBoostCount] = useState(3);
-  const [lastObstacleSpawn, setLastObstacleSpawn] = useState(0);
-
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const playerX = 100;
 
-  const { user } = useAuth(); // ✅ Get the logged-in user
+  // Use custom hooks for state management
+  const gameState = useGameState();
+  const {
+    playerY,
+    obstacles,
+    lives,
+    score,
+    level,
+    gameOver,
+    showStoryPopup,
+    victory,
+    speedBoost,
+    speedBoostCount,
+    lastObstacleSpawn,
+    setPlayerY,
+    setObstacles,
+    setLives,
+    setScore,
+    setLevel,
+    setGameSpeed,
+    setShowStoryPopup,
+    setStoryShown,
+    setVictory,
+    setSpeedBoost,
+    setSpeedBoostCount,
+    setLastObstacleSpawn,
+    setGameOver,
+    resetGame,
+  } = gameState;
 
   const followMode = level >= 5;
   const gamePaused = showStoryPopup;
@@ -66,32 +81,56 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   };
   const currentGear = getCurrentGear();
 
-  const isObstacleTooClose = (newY: number, newX: number) => {
-    return obstacles.some(obstacle => {
-      const distance = Math.sqrt(
-        Math.pow(obstacle.x - newX, 2) + Math.pow(obstacle.y - newY, 2)
-      );
-      return distance < 120;
-    });
-  };
+  // Use game controls hook
+  const { moveUp, moveDown, activateSpeedBoost } = useGameControls({
+    gameOver,
+    victory,
+    gamePaused,
+    speedBoostCount,
+    speedBoost,
+    setPlayerY,
+    setSpeedBoost,
+    setSpeedBoostCount,
+  });
 
-  const moveUp = () => {
-    if (gameOver || victory || gamePaused) return;
-    setPlayerY(prev => Math.max(50, prev - 60));
-  };
+  // Use game events hook
+  useGameEvents({
+    level,
+    lives,
+    score,
+    gameOver,
+    victory,
+    gamePaused,
+    storyShown: gameState.storyShown,
+    showStoryPopup,
+    obstacles,
+    playerX,
+    playerY,
+    avatar,
+    setShowStoryPopup,
+    setVictory,
+    setLevel,
+    setGameSpeed,
+    setLives,
+    setObstacles,
+    setGameOver,
+  });
 
-  const moveDown = () => {
-    if (gameOver || victory || gamePaused) return;
-    setPlayerY(prev => Math.min(550, prev + 60));
-  };
-
-  const activateSpeedBoost = () => {
-    if (speedBoostCount > 0 && !speedBoost && !gamePaused) {
-      setSpeedBoost(true);
-      setSpeedBoostCount(prev => prev - 1);
-      setTimeout(() => setSpeedBoost(false), 3000);
-    }
-  };
+  // Use game loop hook
+  useGameLoop({
+    gameOver,
+    victory,
+    gamePaused,
+    level,
+    gameSpeed: gameState.gameSpeed,
+    speedBoost,
+    playerY,
+    lastObstacleSpawn,
+    obstacles,
+    setObstacles,
+    setScore,
+    setLastObstacleSpawn,
+  });
 
   const handleDolphinSave = () => {
     if (lives > 0) {
@@ -99,165 +138,11 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   };
 
-  const { generateObstacle } = useGameLogic({ level, gameSpeed, speedBoost });
   const { handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
     moveUp,
     moveDown,
     activateSpeedBoost
   });
-
-  useEffect(() => {
-    if (level === 7 && !storyShown && !showStoryPopup) {
-      setShowStoryPopup(true);
-    }
-  }, [level, storyShown, showStoryPopup]);
-
-  useEffect(() => {
-    if (level >= 10 && lives >= 3 && score >= 50000) {
-      setVictory(true);
-    }
-  }, [level, lives, score]);
-
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (gameOver || victory || gamePaused) return;
-      if (e.key === "ArrowUp") moveUp();
-      else if (e.key === "ArrowDown") moveDown();
-      else if (e.key === " " || e.key === "Spacebar") {
-        e.preventDefault();
-        activateSpeedBoost();
-      }
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [speedBoostCount, speedBoost, gamePaused]);
-
-  useEffect(() => {
-    if (gameOver || victory || gamePaused) return;
-
-    const gameLoop = setInterval(() => {
-      const currentTime = Date.now();
-
-      setObstacles(prev => {
-        const updated = prev
-          .map(obstacle => {
-            let newX = obstacle.x - obstacle.speed;
-            let newY = obstacle.y;
-
-            if (obstacle.type === "whale" && obstacle.jumping && obstacle.jumpStart) {
-              const jumpDuration = Date.now() - obstacle.jumpStart;
-              if (jumpDuration < 3000) {
-                const jumpProgress = jumpDuration / 3000;
-                const jumpHeight = Math.sin(jumpProgress * Math.PI) * 100;
-                newY = obstacle.y + (obstacle.jumpDirection || 1) * jumpHeight;
-              } else {
-                obstacle.jumping = false;
-                obstacle.jumpStart = undefined;
-                obstacle.jumpDirection = undefined;
-              }
-            }
-
-            if (followMode && !obstacle.jumping) {
-              const deltaY = playerY - obstacle.y;
-              const followSpeed = 1.5;
-              newY += Math.sign(deltaY) * Math.min(Math.abs(deltaY), followSpeed);
-            }
-
-            return { ...obstacle, x: newX, y: newY };
-          })
-          .filter(obstacle => obstacle.x > -100);
-
-        let shouldSpawn = false;
-
-        if (level <= 4) {
-          const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 4000 + Math.random() * 2000;
-          if (timeSinceLastSpawn > minSpawnInterval) {
-            shouldSpawn = true;
-            setLastObstacleSpawn(currentTime);
-          }
-        } else {
-          if (Math.random() < 0.02) {
-            shouldSpawn = true;
-          }
-        }
-
-        if (shouldSpawn) {
-          let attempts = 0;
-          let newObstacle;
-          do {
-            newObstacle = generateObstacle();
-            attempts++;
-          } while (
-            attempts < 5 &&
-            level <= 4 &&
-            isObstacleTooClose(newObstacle.y, newObstacle.x)
-          );
-
-          if (attempts < 5 || level > 4) {
-            updated.push(newObstacle);
-          }
-        }
-
-        return updated;
-      });
-
-      setScore(prev => prev + 10);
-    }, 16);
-
-    return () => clearInterval(gameLoop);
-  }, [gameOver, victory, gamePaused, generateObstacle, followMode, playerY, level, lastObstacleSpawn]);
-
-  useEffect(() => {
-    const newLevel = Math.floor(score / 5000) + 1;
-    if (newLevel > level) {
-      setLevel(newLevel);
-      setGameSpeed(prev => prev + 0.5);
-    }
-  }, [score, level]);
-
-  useEffect(() => {
-    if (gamePaused) return;
-    obstacles.forEach(obstacle => {
-      if (
-        checkCollision(
-          { x: playerX, y: playerY, width: 60, height: 60 },
-          { x: obstacle.x, y: obstacle.y, width: 80, height: 60 }
-        )
-      ) {
-        setLives(prev => {
-          const newLives = prev - 1;
-          if (newLives <= 0) {
-            setGameOver(true);
-          }
-          return newLives;
-        });
-        setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
-      }
-    });
-  }, [obstacles, playerX, playerY, gamePaused]);
-
-  // ✅ Save score to Supabase on Game Over or Victory
-  useEffect(() => {
-    const saveGameSession = async () => {
-      if (!user) return;
-      const { error } = await supabase.from("game_sessions").insert({
-        user_id: user.id,
-        score,
-        level_reached: level,
-        avatar
-      });
-      if (error) {
-        console.error("Error saving game session:", error);
-      } else {
-        console.log("Game session saved.");
-      }
-    };
-
-    if ((gameOver || victory) && user) {
-      saveGameSession();
-    }
-  }, [gameOver, victory, user, score, level, avatar]);
 
   const handleStoryClose = () => {
     setShowStoryPopup(false);
@@ -265,19 +150,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   };
 
   const handleRestart = () => {
-    setPlayerY(300);
-    setObstacles([]);
-    setLives(3);
-    setScore(0);
-    setLevel(1);
-    setGameSpeed(3);
-    setGameOver(false);
-    setShowStoryPopup(false);
-    setStoryShown(false);
-    setVictory(false);
-    setSpeedBoost(false);
-    setSpeedBoostCount(3);
-    setLastObstacleSpawn(0);
+    resetGame();
   };
 
   if (victory) {
