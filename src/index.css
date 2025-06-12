@@ -178,7 +178,7 @@
   animation: wave3 4s ease-in-out infinite;
 }
 
-/* Mobile optimizations */
+/* Mobile optimizations - Enhanced for responsiveness */
 @media (max-width: 768px) {
   /* Ensure game canvas fits mobile screens */
   .game-container {
@@ -198,10 +198,32 @@
   input, select, textarea {
     font-size: 16px;
   }
+
+  /* Scale UI elements */
+  .absolute.top-4.left-4 {
+    top: 1rem;
+    left: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .absolute.top-4.right-4 {
+    top: 1rem;
+    right: 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Scale player and obstacles for mobile */
+  .player-element {
+    transform: scale(0.8);
+  }
+
+  .obstacle-element {
+    transform: scale(0.8);
+  }
 }
 
 /* Landscape mobile optimization */
-@keyframes-height: 500px) and (orientation: landscape) {
+@media (max-height: 500px) and (orientation: landscape) {
   /* Compact UI for landscape mobile */
   .absolute.top-4 {
     top: 0.5rem;
@@ -209,6 +231,12 @@
   
   .absolute.bottom-4 {
     bottom: 0.5rem;
+  }
+
+  /* Make UI smaller in landscape */
+  .absolute.top-4.left-4,
+  .absolute.top-4.right-4 {
+    font-size: 0.75rem;
   }
 }
 
@@ -221,5 +249,39 @@
   
   .text-2xl {
     font-size: 1.25rem;
+  }
+
+  /* Responsive viewport units */
+  .w-full {
+    width: 100vw;
+  }
+
+  .h-screen {
+    height: 100vh;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+  .absolute.top-4.left-4,
+  .absolute.top-4.right-4 {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .text-xs {
+    font-size: 0.625rem;
+  }
+}
+
+/* Ensure proper scaling for all viewport sizes */
+@media (min-width: 1920px) {
+  /* Scale up for very large screens */
+  .player-element {
+    transform: scale(1.2);
+  }
+
+  .obstacle-element {
+    transform: scale(1.2);
   }
 }

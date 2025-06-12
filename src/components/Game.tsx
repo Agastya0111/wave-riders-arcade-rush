@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { Avatar } from "@/pages/Index";
 import { Player } from "./Player";
 import { Obstacle } from "./Obstacle";
+import { Collectible } from "./Collectible";
 import { Lives } from "./Lives";
 import { Score } from "./Score";
 import { GameOver } from "./GameOver";
@@ -12,6 +13,7 @@ import { GameBackground } from "./GameBackground";
 import { GameUI } from "./GameUI";
 import { TouchControls } from "./TouchControls";
 import { DolphinHelper } from "./DolphinHelper";
+import { SignupPrompt } from "./SignupPrompt";
 import { useTouchControls } from "@/hooks/useTouchControls";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameEvents } from "@/hooks/useGameEvents";
@@ -46,6 +48,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const {
     playerY,
     obstacles,
+    collectibles,
     lives,
     score,
     level,
@@ -55,8 +58,12 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     speedBoost,
     speedBoostCount,
     lastObstacleSpawn,
+    lastCollectibleSpawn,
+    showSignupPrompt,
+    coinsCollected,
     setPlayerY,
     setObstacles,
+    setCollectibles,
     setLives,
     setScore,
     setLevel,
@@ -67,12 +74,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setSpeedBoost,
     setSpeedBoostCount,
     setLastObstacleSpawn,
+    setLastCollectibleSpawn,
     setGameOver,
+    setShowSignupPrompt,
+    setCoinsCollected,
     resetGame,
   } = gameState;
 
   const followMode = level >= 5;
-  const gamePaused = showStoryPopup;
+  const gamePaused = showStoryPopup || showSignupPrompt;
 
   const getCurrentGear = (): Gear => {
     if (level >= 8) return "ship";
@@ -114,6 +124,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setLives,
     setObstacles,
     setGameOver,
+    setShowSignupPrompt,
   });
 
   // Use game loop hook
@@ -126,10 +137,16 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     speedBoost,
     playerY,
     lastObstacleSpawn,
+    lastCollectibleSpawn,
     obstacles,
+    collectibles,
+    playerX,
     setObstacles,
+    setCollectibles,
     setScore,
+    setCoinsCollected,
     setLastObstacleSpawn,
+    setLastCollectibleSpawn,
   });
 
   const handleDolphinSave = () => {
@@ -147,6 +164,10 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const handleStoryClose = () => {
     setShowStoryPopup(false);
     setStoryShown(true);
+  };
+
+  const handleSignupPromptClose = () => {
+    setShowSignupPrompt(false);
   };
 
   const handleRestart = () => {
@@ -180,14 +201,21 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     <div
       ref={gameAreaRef}
       className="relative w-full h-screen bg-gradient-to-b from-sky-300 via-blue-400 to-blue-600 overflow-hidden select-none"
+      style={{ height: '100vh', width: '100vw' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {showStoryPopup && <StoryPopup onContinue={handleStoryClose} />}
+      {showSignupPrompt && (
+        <SignupPrompt 
+          onSignup={onRestart}
+          onContinue={handleSignupPromptClose}
+        />
+      )}
       <GameBackground />
       <Lives lives={lives} />
-      <Score score={score} level={level} />
+      <Score score={score} level={level} coinsCollected={coinsCollected} />
       <DolphinHelper
         lives={lives}
         onSave={handleDolphinSave}
@@ -208,6 +236,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <Player avatar={avatar} x={playerX} y={playerY} gear={currentGear} />
       {obstacles.map(obstacle => (
         <Obstacle key={obstacle.id} obstacle={obstacle} />
+      ))}
+      {collectibles.map(collectible => (
+        <Collectible key={collectible.id} collectible={collectible} />
       ))}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm md:text-lg font-bold drop-shadow-lg text-center">
         <div className="hidden md:block">

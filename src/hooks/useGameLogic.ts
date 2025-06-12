@@ -8,6 +8,14 @@ interface UseGameLogicProps {
   speedBoost: boolean;
 }
 
+export interface CollectibleType {
+  id: string;
+  type: "coin" | "bubble";
+  x: number;
+  y: number;
+  speed: number;
+}
+
 export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps) => {
   const generateObstacle = useCallback(() => {
     const types: ("shark" | "whale" | "octopus" | "rock")[] = ["shark", "whale", "octopus", "rock"];
@@ -28,13 +36,13 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
     
     let speed = gameSpeed;
     
-    // Progressive speed increases for levels 1-4
+    // Progressive speed increases for levels 1-4 with better scaling
     if (level <= 4) {
       const levelSpeeds = {
-        1: gameSpeed * 0.6, // Little fast but easy
-        2: gameSpeed * 0.7, // Slightly faster but easy
-        3: gameSpeed * 0.8, // Medium
-        4: gameSpeed * 0.9  // Faster (but still not difficult)
+        1: gameSpeed * 0.7, // Slower start
+        2: gameSpeed * 0.8, // Slightly faster
+        3: gameSpeed * 0.9, // Medium speed
+        4: gameSpeed * 1.0  // Normal speed
       };
       speed = levelSpeeds[level as keyof typeof levelSpeeds];
     } else {
@@ -82,5 +90,18 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
     return obstacle;
   }, [gameSpeed, level, speedBoost]);
 
-  return { generateObstacle };
+  const generateCollectible = useCallback((): CollectibleType => {
+    const types: ("coin" | "bubble")[] = ["coin", "bubble"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    return {
+      id: Math.random().toString(),
+      type,
+      x: 1200,
+      y: Math.random() * 400 + 100,
+      speed: gameSpeed * 0.8, // Slightly slower than obstacles
+    };
+  }, [gameSpeed]);
+
+  return { generateObstacle, generateCollectible };
 };

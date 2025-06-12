@@ -1,7 +1,8 @@
 
 import { useEffect } from "react";
 import { ObstacleType } from "@/components/Game";
-import { useGameLogic } from "@/hooks/useGameLogic";
+import { CollectibleType, useGameLogic } from "@/hooks/useGameLogic";
+import { checkCollision } from "@/utils/gameUtils";
 
 interface UseGameLoopProps {
   gameOver: boolean;
@@ -12,10 +13,16 @@ interface UseGameLoopProps {
   speedBoost: boolean;
   playerY: number;
   lastObstacleSpawn: number;
+  lastCollectibleSpawn: number;
   obstacles: ObstacleType[];
+  collectibles: CollectibleType[];
+  playerX: number;
   setObstacles: (fn: (prev: ObstacleType[]) => ObstacleType[]) => void;
+  setCollectibles: (fn: (prev: CollectibleType[]) => CollectibleType[]) => void;
   setScore: (fn: (prev: number) => number) => void;
+  setCoinsCollected: (fn: (prev: number) => number) => void;
   setLastObstacleSpawn: (value: number) => void;
+  setLastCollectibleSpawn: (value: number) => void;
 }
 
 export const useGameLoop = ({
@@ -27,12 +34,18 @@ export const useGameLoop = ({
   speedBoost,
   playerY,
   lastObstacleSpawn,
+  lastCollectibleSpawn,
   obstacles,
+  collectibles,
+  playerX,
   setObstacles,
+  setCollectibles,
   setScore,
+  setCoinsCollected,
   setLastObstacleSpawn,
+  setLastCollectibleSpawn,
 }: UseGameLoopProps) => {
-  const { generateObstacle } = useGameLogic({ level, gameSpeed, speedBoost });
+  const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
 
   const isObstacleTooClose = (newY: number, newX: number) => {
@@ -50,6 +63,7 @@ export const useGameLoop = ({
     const gameLoop = setInterval(() => {
       const currentTime = Date.now();
 
+      // Update obstacles
       setObstacles(prev => {
         const updated = prev
           .map(obstacle => {
@@ -79,11 +93,11 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
+        // Improved obstacle spawning for levels 1-4
         let shouldSpawn = false;
-
         if (level <= 4) {
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 4000 + Math.random() * 2000;
+          const minSpawnInterval = 3000 + Math.random() * 2000; // 3-5 seconds
           if (timeSinceLastSpawn > minSpawnInterval) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);
@@ -114,6 +128,27 @@ export const useGameLoop = ({
         return updated;
       });
 
+      // Update collectibles
+      setCollectibles(prev => {
+        const updated = prev
+          .map(collectible => ({
+            ...collectible,
+            x: collectible.x - collectible.speed,
+          }))
+          .filter(collectible => collectible.x > -100);
+
+        // Spawn collectibles for levels 1-4
+        if (level <= 4) {
+          const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
+          if (timeSinceLastCollectible > 6000 + Math.random() * 4000) { // 6-10 seconds
+            updated.push(generateCollectible());
+            setLastCollectibleSpawn(currentTime);
+          }
+        }
+
+        return updated;
+      });
+
       setScore(prev => prev + 10);
     }, 16);
 
@@ -123,13 +158,42 @@ export const useGameLoop = ({
     victory,
     gamePaused,
     generateObstacle,
+    generateCollectible,
     followMode,
     playerY,
     level,
     lastObstacleSpawn,
+    lastCollectibleSpawn,
     obstacles,
+    collectibles,
+    playerX,
     setObstacles,
+    setCollectibles,
     setScore,
+    setCoinsCollected,
     setLastObstacleSpawn,
+    setLastCollectibleSpawn,
   ]);
+
+  // Collectible collision detection
+  useEffect(() => {
+    if (gamePaused) return;
+    
+    collectibles.forEach(collectible => {
+      if (
+        checkCollision(
+          { x: playerX, y: playerY, width: 60, height: 60 },
+          { x: collectible.x, y: collectible.y, width: 40, height: 40 }
+        )
+      ) {
+        if (collectible.type === "coin") {
+          setScore(prev => prev + 100);
+          setCoinsCollected(prev => prev + 1);
+        } else if (collectible.type === "bubble") {
+          setScore(prev => prev + 50);
+        }
+        setCollectibles(prev => prev.filter(c => c.id !== collectible.id));
+      }
+    });
+  }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles]);
 };

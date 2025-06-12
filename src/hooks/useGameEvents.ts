@@ -29,6 +29,7 @@ interface UseGameEventsProps {
   setLives: (fn: (prev: number) => number) => void;
   setObstacles: (fn: (prev: ObstacleType[]) => ObstacleType[]) => void;
   setGameOver: (value: boolean) => void;
+  setShowSignupPrompt: (value: boolean) => void;
 }
 
 export const useGameEvents = ({
@@ -51,8 +52,16 @@ export const useGameEvents = ({
   setLives,
   setObstacles,
   setGameOver,
+  setShowSignupPrompt,
 }: UseGameEventsProps) => {
   const { user } = useAuth();
+
+  // Guest mode: Show signup prompt at level 4
+  useEffect(() => {
+    if (level === 4 && !user && !showStoryPopup) {
+      setShowSignupPrompt(true);
+    }
+  }, [level, user, showStoryPopup, setShowSignupPrompt]);
 
   // Story popup trigger
   useEffect(() => {
@@ -68,14 +77,18 @@ export const useGameEvents = ({
     }
   }, [level, lives, score, setVictory]);
 
-  // Level progression
+  // Level progression - only allow progression past level 3 if user is authenticated
   useEffect(() => {
     const newLevel = Math.floor(score / 5000) + 1;
     if (newLevel > level) {
+      // Block progression past level 3 for guests
+      if (newLevel > 3 && !user) {
+        return; // Don't progress beyond level 3 for guests
+      }
       setLevel(newLevel);
       setGameSpeed(prev => prev + 0.5);
     }
-  }, [score, level, setLevel, setGameSpeed]);
+  }, [score, level, user, setLevel, setGameSpeed]);
 
   // Collision detection
   useEffect(() => {
