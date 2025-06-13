@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameBackground } from "./GameBackground";
 import { Player } from "./Player";
@@ -14,6 +15,7 @@ import { WRCDisplay } from "./WRCDisplay";
 import { ShopDialog } from "./ShopDialog";
 import { MilestonePopup } from "./MilestonePopup";
 import { ItemControls } from "./ItemControls";
+import { CoinCollectionFeedback } from "./CoinCollectionFeedback";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useGameControls } from "@/hooks/useGameControls";
@@ -51,6 +53,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [livesUsed, setLivesUsed] = useState(0);
   const [dolphinsUsed, setDolphinsUsed] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [showCoinFeedback, setShowCoinFeedback] = useState(false);
 
   // WRC and shop system
   const wrcSystem = useWRCSystem();
@@ -66,16 +69,22 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Earn WRC from score
-  useEffect(() => {
-    const wrcEarned = Math.floor(gameState.score / 100);
-    const currentWRC = wrcSystem.wrcBalance;
-    if (wrcEarned > currentWRC) {
-      wrcSystem.earnWRC(wrcEarned - currentWRC);
+  // Handle coin collection for WRC
+  const handleCoinCollected = useCallback(() => {
+    wrcSystem.earnWRC(1);
+    setShowCoinFeedback(true);
+    setTimeout(() => setShowCoinFeedback(false), 1000);
+    
+    // Play coin sound
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRu4CAABXQVZFZm10IBAAAAABAAEASB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEZBjuO1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+Dy');
+      audio.play().catch(() => {}); // Ignore audio play errors
+    } catch (error) {
+      console.log('Audio not supported');
     }
-  }, [gameState.score]);
+  }, [wrcSystem]);
 
-  // Milestone tracking
+  // Milestone tracking (based on score, not WRC)
   useEffect(() => {
     const milestones = [50, 100, 150];
     const newMilestone = milestones.find(m => 
@@ -104,20 +113,24 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
 
-  // Item usage handlers
+  // Item usage handlers with WRC validation
   const handleUseShield = useCallback(() => {
-    if (wrcSystem.useShield()) {
-      activateShield();
-      // Remove the next obstacle that would hit the player
-      gameState.setObstacles(prev => prev.slice(1));
+    if (wrcSystem.shield && wrcSystem.shield.uses && wrcSystem.shield.uses > 0) {
+      if (wrcSystem.useShield()) {
+        activateShield();
+        // Remove the next obstacle that would hit the player
+        gameState.setObstacles(prev => prev.slice(1));
+      }
     }
   }, [wrcSystem, activateShield]);
 
   const handleUseSword = useCallback(() => {
-    if (wrcSystem.useSword()) {
-      activateSword();
-      // Remove up to 3 obstacles
-      gameState.setObstacles(prev => prev.slice(3));
+    if (wrcSystem.sword && wrcSystem.sword.uses && wrcSystem.sword.uses > 0) {
+      if (wrcSystem.useSword()) {
+        activateSword();
+        // Remove up to 3 obstacles
+        gameState.setObstacles(prev => prev.slice(3));
+      }
     }
   }, [wrcSystem, activateSword]);
 
@@ -172,10 +185,11 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setSpeedBoostCount: gameState.setSpeedBoostCount,
   });
 
-  // Game loop
+  // Game loop with coin collection callback
   useGameLoop({
     ...gameState,
     playerX,
+    onCoinCollected: handleCoinCollected,
   });
 
   // Game events
@@ -293,6 +307,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           onUseSword={handleUseSword}
           isMobile={isMobile}
         />
+        
+        {/* Coin collection feedback */}
+        {showCoinFeedback && <CoinCollectionFeedback />}
         
         {/* Shield effect */}
         {shieldActive && (

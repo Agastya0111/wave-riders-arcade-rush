@@ -23,6 +23,7 @@ interface UseGameLoopProps {
   setCoinsCollected: (fn: (prev: number) => number) => void;
   setLastObstacleSpawn: (value: number) => void;
   setLastCollectibleSpawn: (value: number) => void;
+  onCoinCollected?: () => void;
 }
 
 export const useGameLoop = ({
@@ -44,6 +45,7 @@ export const useGameLoop = ({
   setCoinsCollected,
   setLastObstacleSpawn,
   setLastCollectibleSpawn,
+  onCoinCollected,
 }: UseGameLoopProps) => {
   const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
@@ -131,7 +133,7 @@ export const useGameLoop = ({
         return updated;
       });
 
-      // Update collectibles - always spawn for levels 1-4
+      // Update collectibles - spawn more frequently for coin collection
       setCollectibles(prev => {
         const updated = prev
           .map(collectible => ({
@@ -140,13 +142,13 @@ export const useGameLoop = ({
           }))
           .filter(collectible => collectible.x > -100);
 
-        // Spawn collectibles more frequently for levels 1-4
-        if (level <= 4) {
-          const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
-          if (timeSinceLastCollectible > 3000 + Math.random() * 2000) { // 3-5 seconds
-            updated.push(generateCollectible());
-            setLastCollectibleSpawn(currentTime);
-          }
+        // Spawn collectibles more frequently for WRC collection
+        const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
+        const spawnInterval = level <= 4 ? 2000 : 3000; // More frequent spawning
+        
+        if (timeSinceLastCollectible > spawnInterval + Math.random() * 1000) {
+          updated.push(generateCollectible());
+          setLastCollectibleSpawn(currentTime);
         }
 
         return updated;
@@ -176,9 +178,10 @@ export const useGameLoop = ({
     setCoinsCollected,
     setLastObstacleSpawn,
     setLastCollectibleSpawn,
+    onCoinCollected,
   ]);
 
-  // Collectible collision detection
+  // Collectible collision detection with WRC earning
   useEffect(() => {
     if (gamePaused) return;
     
@@ -192,11 +195,15 @@ export const useGameLoop = ({
         if (collectible.type === "coin") {
           setScore(prev => prev + 100);
           setCoinsCollected(prev => prev + 1);
+          // Earn 1 WRC per coin
+          if (onCoinCollected) {
+            onCoinCollected();
+          }
         } else if (collectible.type === "bubble") {
           setScore(prev => prev + 50);
         }
         setCollectibles(prev => prev.filter(c => c.id !== collectible.id));
       }
     });
-  }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles]);
+  }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles, onCoinCollected]);
 };
