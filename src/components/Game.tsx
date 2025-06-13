@@ -162,7 +162,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <GameBackground level={gameState.level} />
+        <GameBackground />
         
         <Player 
           x={playerX} 
