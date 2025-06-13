@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaderboard } from "./Leaderboard";
 import { GameStats } from "./GameStats";
+import { UserStats } from "./UserStats";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Play, Trophy, BarChart3, User } from "lucide-react";
 
@@ -13,7 +14,7 @@ interface MainMenuProps {
 }
 
 export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
-  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats'>('menu');
+  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats' | 'userStats'>('menu');
   const { signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -42,6 +43,23 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
       <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <GameStats />
+          <Button 
+            onClick={() => setCurrentView('menu')}
+            variant="outline"
+            className="w-full bg-white/90"
+          >
+            Back to Menu
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentView === 'userStats') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <UserStats />
           <Button 
             onClick={() => setCurrentView('menu')}
             variant="outline"
@@ -95,6 +113,15 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
           >
             <BarChart3 className="w-5 h-5 mr-2" />
             Game Stats
+          </Button>
+          
+          <Button 
+            onClick={() => setCurrentView('userStats')}
+            variant="outline"
+            className="w-full"
+          >
+            <User className="w-5 h-5 mr-2" />
+            My Stats
           </Button>
           
           {!isGuest && (

@@ -1,6 +1,9 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Leaderboard } from "./Leaderboard";
+import { useAuth } from "@/hooks/useAuth";
 
 interface VictoryProps {
   score: number;
@@ -9,6 +12,26 @@ interface VictoryProps {
 }
 
 export const Victory = ({ score, onPlayAgain, onChooseAvatar }: VictoryProps) => {
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const { user } = useAuth();
+
+  if (showLeaderboard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-yellow-400 via-orange-500 to-red-500 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Leaderboard />
+          <Button 
+            onClick={() => setShowLeaderboard(false)}
+            variant="outline"
+            className="w-full bg-white/90"
+          >
+            Back to Victory
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-400 via-orange-500 to-red-500 flex items-center justify-center p-4">
       <Card className="bg-white/95 backdrop-blur shadow-2xl">
@@ -36,6 +59,22 @@ export const Victory = ({ score, onPlayAgain, onChooseAvatar }: VictoryProps) =>
             >
               🏄 Choose New Avatar
             </Button>
+            
+            {user ? (
+              <Button 
+                onClick={() => setShowLeaderboard(true)}
+                variant="outline"
+                className="w-full text-lg py-3"
+              >
+                🏆 View Leaderboard
+              </Button>
+            ) : (
+              <div className="p-3 bg-yellow-100 rounded-lg border border-yellow-300">
+                <p className="text-yellow-800 text-sm">
+                  🏆 Log in to compete on the leaderboard!
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

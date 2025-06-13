@@ -1,90 +1,61 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Avatar } from "@/pages/Index";
 
-interface GameSessionData {
+interface UseGameSessionProps {
+  gameOver: boolean;
+  victory: boolean;
   score: number;
   level: number;
-  duration: number;
+  avatar: Avatar;
+  startTime: number;
   livesUsed: number;
   dolphinsUsed: number;
-  completed: boolean;
 }
 
-export const useGameSession = () => {
+export const useGameSession = ({
+  gameOver,
+  victory,
+  score,
+  level,
+  avatar,
+  startTime,
+  livesUsed,
+  dolphinsUsed,
+}: UseGameSessionProps) => {
   const { user } = useAuth();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [gameStartTime, setGameStartTime] = useState<number>(0);
 
-  const startGameSession = async () => {
-    if (!user) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .insert({
-          user_id: user.id,
-          score: 0,
-          level_reached: 1,
-          duration_seconds: 0,
-          lives_used: 0,
-          dolphins_used: 0,
-          completed: false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setSessionId(data.id);
-      setGameStartTime(Date.now());
-      console.log("Game session started:", data.id);
+  useEffect(() => {
+    const saveGameSession = async () => {
+      if (!user) return;
       
-      return data.id;
-    } catch (error) {
-      console.error("Error starting game session:", error);
-      return null;
+      const durationSeconds = Math.floor((Date.now() - startTime) / 1000);
+      
+      try {
+        const { error } = await supabase.from("game_sessions").insert({
+          user_id: user.id,
+          score,
+          level_reached: level,
+          duration_seconds: durationSeconds,
+          lives_used: livesUsed,
+          dolphins_used: dolphinsUsed,
+          completed: victory
+        });
+        
+        if (error) {
+          console.error("Error saving game session:", error);
+        } else {
+          console.log("Game session saved successfully");
+        }
+      } catch (error) {
+        console.error("Failed to save game session:", error);
+      }
+    };
+
+    if ((gameOver || victory) && user && startTime > 0) {
+      saveGameSession();
     }
-  };
-
-  const updateGameSession = async (sessionData: GameSessionData) => {
-    if (!sessionId || !user) return;
-
-    const duration = Math.floor((Date.now() - gameStartTime) / 1000);
-
-    try {
-      const { error } = await supabase
-        .from("game_sessions")
-        .update({
-          score: sessionData.score,
-          level_reached: sessionData.level,
-          duration_seconds: duration,
-          lives_used: sessionData.livesUsed,
-          dolphins_used: sessionData.dolphinsUsed,
-          completed: sessionData.completed,
-        })
-        .eq("id", sessionId);
-
-      if (error) throw error;
-      console.log("Game session updated:", sessionData);
-    } catch (error) {
-      console.error("Error updating game session:", error);
-    }
-  };
-
-  const endGameSession = async (finalData: GameSessionData) => {
-    if (!sessionId) return;
-
-    await updateGameSession({ ...finalData, completed: true });
-    setSessionId(null);
-    setGameStartTime(0);
-  };
-
-  return {
-    startGameSession,
-    updateGameSession,
-    endGameSession,
-    sessionId,
-  };
+  }, [gameOver, victory, user, score, level, avatar, startTime, livesUsed, dolphinsUsed]);
 };
