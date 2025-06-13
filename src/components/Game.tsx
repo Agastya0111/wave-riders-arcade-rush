@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameBackground } from "./GameBackground";
 import { Player } from "./Player";
@@ -272,7 +271,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         <WRCDisplay balance={wrcSystem.wrcBalance} />
         
         <DolphinHelper
-          level={gameState.level}
           onUse={() => setDolphinsUsed(prev => prev + 1)}
         />
         
