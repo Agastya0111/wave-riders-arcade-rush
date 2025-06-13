@@ -31,6 +31,8 @@ export interface ObstacleType {
   jumpDirection?: number;
 }
 
+export type Gear = "surfboard" | "bike" | "ship";
+
 interface GameProps {
   avatar: Avatar;
   onRestart: () => void;
@@ -51,43 +53,55 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setLivesUsed(initialLives - gameState.lives);
   }, [gameState.lives]);
 
+  // Determine current gear based on level
+  const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
+  const followMode = gameState.level >= 5;
+
   // Touch controls
-  const { touchY, handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
-    onMove: gameState.setPlayerY,
-    currentY: gameState.playerY,
-    gamePaused
+  const { handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
+    moveUp: () => {
+      if (!gameState.gameOver && !gameState.victory && !gamePaused) {
+        gameState.setPlayerY(prev => Math.max(50, prev - 60));
+      }
+    },
+    moveDown: () => {
+      if (!gameState.gameOver && !gameState.victory && !gamePaused) {
+        gameState.setPlayerY(prev => Math.min(550, prev + 60));
+      }
+    },
+    activateSpeedBoost: () => {
+      if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gamePaused) {
+        gameState.setSpeedBoost(true);
+        gameState.setSpeedBoostCount(prev => prev - 1);
+        setTimeout(() => gameState.setSpeedBoost(false), 3000);
+      }
+    }
   });
 
   // Game controls
   useGameControls({
-    playerY: gameState.playerY,
-    setPlayerY: gameState.setPlayerY,
-    speedBoost: gameState.speedBoost,
-    setSpeedBoost: gameState.setSpeedBoost,
-    speedBoostCount: gameState.speedBoostCount,
-    setSpeedBoostCount: gameState.setSpeedBoostCount,
+    gameOver: gameState.gameOver,
+    victory: gameState.victory,
     gamePaused,
-    setGamePaused,
-    touchY
+    speedBoostCount: gameState.speedBoostCount,
+    speedBoost: gameState.speedBoost,
+    setPlayerY: gameState.setPlayerY,
+    setSpeedBoost: gameState.setSpeedBoost,
+    setSpeedBoostCount: gameState.setSpeedBoostCount,
   });
 
   // Game loop
   useGameLoop({
     ...gameState,
     playerX,
-    playerY: gameState.playerY,
     gamePaused,
-    avatar
   });
 
   // Game events
   useGameEvents({
     ...gameState,
     playerX,
-    playerY: gameState.playerY,
-    avatar,
     gamePaused,
-    storyShown: gameState.storyShown
   });
 
   // Game session tracking
@@ -154,7 +168,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           x={playerX} 
           y={gameState.playerY} 
           avatar={avatar}
-          speedBoost={gameState.speedBoost}
+          gear={currentGear}
         />
         
         {gameState.obstacles.map((obstacle) => (
@@ -166,29 +180,40 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         ))}
         
         <GameUI
-          score={gameState.score}
           level={gameState.level}
-          lives={gameState.lives}
-          speedBoostCount={gameState.speedBoostCount}
-          coinsCollected={gameState.coinsCollected}
+          followMode={followMode}
+          currentGear={currentGear}
+          speedBoost={gameState.speedBoost}
         />
         
         <DolphinHelper
-          level={gameState.level}
           onUse={() => setDolphinsUsed(prev => prev + 1)}
         />
         
-        <TouchControls />
+        <TouchControls 
+          speedBoostCount={gameState.speedBoostCount}
+          speedBoost={gameState.speedBoost}
+          onSpeedBoost={() => {
+            if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gamePaused) {
+              gameState.setSpeedBoost(true);
+              gameState.setSpeedBoostCount(prev => prev - 1);
+              setTimeout(() => gameState.setSpeedBoost(false), 3000);
+            }
+          }}
+        />
         
         {gameState.showStoryPopup && (
-          <StoryPopup onClose={() => {
+          <StoryPopup onContinue={() => {
             gameState.setShowStoryPopup(false);
             gameState.setStoryShown(true);
           }} />
         )}
         
         {gameState.showSignupPrompt && (
-          <SignupPrompt onClose={() => gameState.setShowSignupPrompt(false)} />
+          <SignupPrompt 
+            onSignup={() => gameState.setShowSignupPrompt(false)}
+            onContinue={() => gameState.setShowSignupPrompt(false)}
+          />
         )}
       </div>
     </div>

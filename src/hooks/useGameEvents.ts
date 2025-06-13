@@ -19,7 +19,6 @@ interface UseGameEventsProps {
   obstacles: ObstacleType[];
   playerX: number;
   playerY: number;
-  avatar: Avatar;
   
   // Setters
   setShowStoryPopup: (value: boolean) => void;
@@ -44,7 +43,6 @@ export const useGameEvents = ({
   obstacles,
   playerX,
   playerY,
-  avatar,
   setShowStoryPopup,
   setVictory,
   setLevel,
@@ -105,26 +103,4 @@ export const useGameEvents = ({
       }
     });
   }, [obstacles, playerX, playerY, gamePaused, setLives, setObstacles, setGameOver]);
-
-  // Save score to Supabase
-  useEffect(() => {
-    const saveGameSession = async () => {
-      if (!user) return;
-      const { error } = await supabase.from("game_sessions").insert({
-        user_id: user.id,
-        score,
-        level_reached: level,
-        avatar
-      });
-      if (error) {
-        console.error("Error saving game session:", error);
-      } else {
-        console.log("Game session saved.");
-      }
-    };
-
-    if ((gameOver || victory) && user) {
-      saveGameSession();
-    }
-  }, [gameOver, victory, user, score, level, avatar]);
 };
