@@ -93,14 +93,15 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Enhanced obstacle spawning for levels 1-4 - ensure spawn every 4 seconds max
+        // Enhanced obstacle spawning for levels 1-4 
         let shouldSpawn = false;
         if (level <= 4) {
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const maxSpawnInterval = 4000; // 4 seconds maximum
-          const minSpawnInterval = 2000; // 2 seconds minimum
-          if (timeSinceLastSpawn > maxSpawnInterval || 
-              (timeSinceLastSpawn > minSpawnInterval && Math.random() < 0.3)) {
+          const minSpawnInterval = 5000; // 5 seconds minimum
+          const hasNoObstacles = updated.length === 0;
+          
+          // Only spawn if 5+ seconds have passed AND no obstacles are present
+          if (timeSinceLastSpawn >= minSpawnInterval && hasNoObstacles) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);
           }

@@ -6,11 +6,38 @@ interface GameUIProps {
   followMode: boolean;
   currentGear: Gear;
   speedBoost: boolean;
+  score: number;
+  lives: number;
+  speedBoostCount: number;
+  coinsCollected: number;
 }
 
-export const GameUI = ({ level, followMode, currentGear, speedBoost }: GameUIProps) => {
+export const GameUI = ({ 
+  level, 
+  followMode, 
+  currentGear, 
+  speedBoost, 
+  score, 
+  lives, 
+  speedBoostCount, 
+  coinsCollected 
+}: GameUIProps) => {
   return (
     <>
+      {/* Score and Level Display */}
+      <div className="absolute top-4 left-4 text-white font-bold drop-shadow-lg">
+        <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 space-y-1">
+          <div className="text-lg md:text-xl">Score: {score.toLocaleString()}</div>
+          <div className="text-sm md:text-base">Level: {level}</div>
+          <div className="text-sm md:text-base">Lives: {Array(lives).fill('❤️').join('')}</div>
+          {coinsCollected > 0 && (
+            <div className="text-sm md:text-base flex items-center gap-1">
+              🪙 {coinsCollected}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Speed boost indicator */}
       {speedBoost && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl animate-pulse">
@@ -20,7 +47,7 @@ export const GameUI = ({ level, followMode, currentGear, speedBoost }: GameUIPro
 
       {/* Pirate ship appears from level 7 */}
       {level >= 7 && (
-        <div className="absolute top-4 right-4 text-6xl animate-bounce">
+        <div className="absolute top-4 right-20 text-6xl animate-bounce">
           🏴‍☠️
         </div>
       )}

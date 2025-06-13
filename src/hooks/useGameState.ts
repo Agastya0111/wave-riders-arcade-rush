@@ -21,6 +21,10 @@ export const useGameState = () => {
   const [lastCollectibleSpawn, setLastCollectibleSpawn] = useState(0);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [coinsCollected, setCoinsCollected] = useState(0);
+  const [showMilestonePopup, setShowMilestonePopup] = useState(false);
+  const [milestoneReached, setMilestoneReached] = useState<number[]>([]);
+  const [showShop, setShowShop] = useState(false);
+  const [gamePaused, setGamePaused] = useState(false);
 
   const resetGame = () => {
     setPlayerY(300);
@@ -40,6 +44,10 @@ export const useGameState = () => {
     setLastCollectibleSpawn(0);
     setShowSignupPrompt(false);
     setCoinsCollected(0);
+    setShowMilestonePopup(false);
+    setMilestoneReached([]);
+    setShowShop(false);
+    setGamePaused(false);
   };
 
   return {
@@ -61,6 +69,10 @@ export const useGameState = () => {
     lastCollectibleSpawn,
     showSignupPrompt,
     coinsCollected,
+    showMilestonePopup,
+    milestoneReached,
+    showShop,
+    gamePaused,
     // Setters
     setPlayerY,
     setObstacles,
@@ -79,6 +91,10 @@ export const useGameState = () => {
     setGameOver,
     setShowSignupPrompt,
     setCoinsCollected,
+    setShowMilestonePopup,
+    setMilestoneReached,
+    setShowShop,
+    setGamePaused,
     // Utils
     resetGame,
   };

@@ -11,12 +11,18 @@ import { StoryPopup } from "./StoryPopup";
 import { SignupPrompt } from "./SignupPrompt";
 import { DolphinHelper } from "./DolphinHelper";
 import { TouchControls } from "./TouchControls";
+import { WRCDisplay } from "./WRCDisplay";
+import { ShopDialog } from "./ShopDialog";
+import { MilestonePopup } from "./MilestonePopup";
+import { ItemControls } from "./ItemControls";
 import { useGameState } from "@/hooks/useGameState";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useGameControls } from "@/hooks/useGameControls";
 import { useGameEvents } from "@/hooks/useGameEvents";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTouchControls } from "@/hooks/useTouchControls";
+import { useWRCSystem } from "@/hooks/useWRCSystem";
+import { useItemEffects } from "@/hooks/useItemEffects";
 import type { Avatar } from "@/pages/Index";
 
 export interface ObstacleType {
@@ -41,11 +47,53 @@ interface GameProps {
 export const Game = ({ avatar, onRestart }: GameProps) => {
   const gameState = useGameState();
   const [playerX] = useState(100);
-  const [gamePaused, setGamePaused] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const [startTime] = useState(Date.now());
   const [livesUsed, setLivesUsed] = useState(0);
   const [dolphinsUsed, setDolphinsUsed] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // WRC and shop system
+  const wrcSystem = useWRCSystem();
+  const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Earn WRC from score
+  useEffect(() => {
+    const wrcEarned = Math.floor(gameState.score / 100);
+    const currentWRC = wrcSystem.wrcBalance;
+    if (wrcEarned > currentWRC) {
+      wrcSystem.earnWRC(wrcEarned - currentWRC);
+    }
+  }, [gameState.score]);
+
+  // Milestone tracking
+  useEffect(() => {
+    const milestones = [50, 100, 150];
+    const newMilestone = milestones.find(m => 
+      gameState.score >= m && !gameState.milestoneReached.includes(m)
+    );
+    
+    if (newMilestone) {
+      gameState.setMilestoneReached(prev => [...prev, newMilestone]);
+      gameState.setGamePaused(true);
+      gameState.setShowMilestonePopup(true);
+      
+      // Grant free items at 150 points
+      if (newMilestone === 150) {
+        wrcSystem.grantFreeItems();
+      }
+    }
+  }, [gameState.score]);
 
   // Track lives used
   useEffect(() => {
@@ -57,20 +105,55 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
 
+  // Item usage handlers
+  const handleUseShield = useCallback(() => {
+    if (wrcSystem.useShield()) {
+      activateShield();
+      // Remove the next obstacle that would hit the player
+      gameState.setObstacles(prev => prev.slice(1));
+    }
+  }, [wrcSystem, activateShield]);
+
+  const handleUseSword = useCallback(() => {
+    if (wrcSystem.useSword()) {
+      activateSword();
+      // Remove up to 3 obstacles
+      gameState.setObstacles(prev => prev.slice(3));
+    }
+  }, [wrcSystem, activateSword]);
+
+  // Keyboard controls for items
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (gameState.gameOver || gameState.victory || gameState.gamePaused) return;
+      
+      if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        handleUseSword();
+      } else if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        handleUseShield();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleUseShield, handleUseSword, gameState.gameOver, gameState.victory, gameState.gamePaused]);
+
   // Touch controls
   const { handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
     moveUp: () => {
-      if (!gameState.gameOver && !gameState.victory && !gamePaused) {
+      if (!gameState.gameOver && !gameState.victory && !gameState.gamePaused) {
         gameState.setPlayerY(prev => Math.max(50, prev - 60));
       }
     },
     moveDown: () => {
-      if (!gameState.gameOver && !gameState.victory && !gamePaused) {
+      if (!gameState.gameOver && !gameState.victory && !gameState.gamePaused) {
         gameState.setPlayerY(prev => Math.min(550, prev + 60));
       }
     },
     activateSpeedBoost: () => {
-      if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gamePaused) {
+      if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gameState.gamePaused) {
         gameState.setSpeedBoost(true);
         gameState.setSpeedBoostCount(prev => prev - 1);
         setTimeout(() => gameState.setSpeedBoost(false), 3000);
@@ -82,7 +165,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   useGameControls({
     gameOver: gameState.gameOver,
     victory: gameState.victory,
-    gamePaused,
+    gamePaused: gameState.gamePaused,
     speedBoostCount: gameState.speedBoostCount,
     speedBoost: gameState.speedBoost,
     setPlayerY: gameState.setPlayerY,
@@ -94,14 +177,12 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   useGameLoop({
     ...gameState,
     playerX,
-    gamePaused,
   });
 
   // Game events
   useGameEvents({
     ...gameState,
     playerX,
-    gamePaused,
   });
 
   // Game session tracking
@@ -118,7 +199,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   const handleRestart = useCallback(() => {
     gameState.resetGame();
-    setGamePaused(false);
     setLivesUsed(0);
     setDolphinsUsed(0);
     onRestart();
@@ -126,7 +206,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   const handleChooseAvatar = useCallback(() => {
     gameState.resetGame();
-    setGamePaused(false);
     setLivesUsed(0);
     setDolphinsUsed(0);
   }, [gameState]);
@@ -184,9 +263,16 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           followMode={followMode}
           currentGear={currentGear}
           speedBoost={gameState.speedBoost}
+          score={gameState.score}
+          lives={gameState.lives}
+          speedBoostCount={gameState.speedBoostCount}
+          coinsCollected={gameState.coinsCollected}
         />
         
+        <WRCDisplay balance={wrcSystem.wrcBalance} />
+        
         <DolphinHelper
+          level={gameState.level}
           onUse={() => setDolphinsUsed(prev => prev + 1)}
         />
         
@@ -194,13 +280,39 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           speedBoostCount={gameState.speedBoostCount}
           speedBoost={gameState.speedBoost}
           onSpeedBoost={() => {
-            if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gamePaused) {
+            if (gameState.speedBoostCount > 0 && !gameState.speedBoost && !gameState.gamePaused) {
               gameState.setSpeedBoost(true);
               gameState.setSpeedBoostCount(prev => prev - 1);
               setTimeout(() => gameState.setSpeedBoost(false), 3000);
             }
           }}
         />
+        
+        <ItemControls
+          shield={wrcSystem.shield}
+          sword={wrcSystem.sword}
+          onUseShield={handleUseShield}
+          onUseSword={handleUseSword}
+          isMobile={isMobile}
+        />
+        
+        {/* Shield effect */}
+        {shieldActive && (
+          <div className="absolute inset-0 bg-blue-300/30 animate-pulse pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl animate-spin">
+              ✨
+            </div>
+          </div>
+        )}
+        
+        {/* Sword effect */}
+        {swordActive && (
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl animate-bounce">
+              ⚡
+            </div>
+          </div>
+        )}
         
         {gameState.showStoryPopup && (
           <StoryPopup onContinue={() => {
@@ -213,6 +325,36 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           <SignupPrompt 
             onSignup={() => gameState.setShowSignupPrompt(false)}
             onContinue={() => gameState.setShowSignupPrompt(false)}
+          />
+        )}
+        
+        {gameState.showMilestonePopup && (
+          <MilestonePopup
+            score={gameState.score}
+            onResume={() => {
+              gameState.setShowMilestonePopup(false);
+              gameState.setGamePaused(false);
+            }}
+            onOpenShop={() => {
+              gameState.setShowMilestonePopup(false);
+              gameState.setShowShop(true);
+            }}
+            onContinueAfterReward={() => {
+              gameState.setShowMilestonePopup(false);
+              gameState.setGamePaused(false);
+            }}
+          />
+        )}
+        
+        {gameState.showShop && (
+          <ShopDialog
+            wrcBalance={wrcSystem.wrcBalance}
+            onBuyShield={wrcSystem.buyShield}
+            onBuySword={wrcSystem.buySword}
+            onClose={() => {
+              gameState.setShowShop(false);
+              gameState.setGamePaused(false);
+            }}
           />
         )}
       </div>
