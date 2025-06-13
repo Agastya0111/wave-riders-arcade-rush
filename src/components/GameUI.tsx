@@ -10,6 +10,7 @@ interface GameUIProps {
   lives: number;
   speedBoostCount: number;
   coinsCollected: number;
+  wrcBalance: number;
 }
 
 export const GameUI = ({ 
@@ -20,7 +21,8 @@ export const GameUI = ({
   score, 
   lives, 
   speedBoostCount, 
-  coinsCollected 
+  coinsCollected,
+  wrcBalance
 }: GameUIProps) => {
   return (
     <>
@@ -30,11 +32,9 @@ export const GameUI = ({
           <div className="text-lg md:text-xl">Score: {score.toLocaleString()}</div>
           <div className="text-sm md:text-base">Level: {level}</div>
           <div className="text-sm md:text-base">Lives: {Array(lives).fill('❤️').join('')}</div>
-          {coinsCollected > 0 && (
-            <div className="text-sm md:text-base flex items-center gap-1">
-              🪙 {coinsCollected}
-            </div>
-          )}
+          <div className="text-sm md:text-base flex items-center gap-1">
+            🪙 {wrcBalance} WRC
+          </div>
         </div>
       </div>
 

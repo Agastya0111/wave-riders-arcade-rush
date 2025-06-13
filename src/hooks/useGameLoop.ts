@@ -193,13 +193,14 @@ export const useGameLoop = ({
         )
       ) {
         if (collectible.type === "coin") {
-          setScore(prev => prev + 100);
+          // Coins give WRC, not score points
           setCoinsCollected(prev => prev + 1);
           // Earn 1 WRC per coin
           if (onCoinCollected) {
             onCoinCollected();
           }
         } else if (collectible.type === "bubble") {
+          // Bubbles give score points, not WRC
           setScore(prev => prev + 50);
         }
         setCollectibles(prev => prev.filter(c => c.id !== collectible.id));

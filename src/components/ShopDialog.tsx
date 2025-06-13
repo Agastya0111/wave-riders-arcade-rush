@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 
 interface ShopDialogProps {
   wrcBalance: number;
-  onBuyShield: () => Promise<boolean>;
-  onBuySword: () => Promise<boolean>;
+  onBuyShield: () => Promise<{ success: boolean; message: string }>;
+  onBuySword: () => Promise<{ success: boolean; message: string }>;
   onClose: () => void;
 }
 
@@ -13,26 +13,18 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
   const [message, setMessage] = useState("");
 
   const handleBuyShield = async () => {
-    if (wrcBalance < 50) {
-      setMessage("You don't have enough WRC!");
-      return;
-    }
-    const success = await onBuyShield();
-    if (success) {
-      setMessage("Shield purchased!");
-      setTimeout(onClose, 1000);
+    const result = await onBuyShield();
+    setMessage(result.message);
+    if (result.success) {
+      setTimeout(onClose, 1500);
     }
   };
 
   const handleBuySword = async () => {
-    if (wrcBalance < 100) {
-      setMessage("You don't have enough WRC!");
-      return;
-    }
-    const success = await onBuySword();
-    if (success) {
-      setMessage("Sword purchased!");
-      setTimeout(onClose, 1000);
+    const result = await onBuySword();
+    setMessage(result.message);
+    if (result.success) {
+      setTimeout(onClose, 1500);
     }
   };
 
@@ -93,7 +85,11 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
         </div>
 
         {message && (
-          <div className="mt-4 p-3 bg-blue-100 rounded-lg text-center text-blue-800">
+          <div className={`mt-4 p-3 rounded-lg text-center ${
+            message.includes("Not enough") || message.includes("failed") 
+              ? "bg-red-100 text-red-800" 
+              : "bg-green-100 text-green-800"
+          }`}>
             {message}
           </div>
         )}

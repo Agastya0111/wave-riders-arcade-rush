@@ -80,6 +80,10 @@ export const useWRCSystem = () => {
   };
 
   const buyShield = async () => {
+    if (wrcBalance < 50) {
+      return { success: false, message: "Not enough WRC to buy this item." };
+    }
+    
     if (await spendWRC(50)) {
       setShield({
         id: 'shield',
@@ -90,12 +94,16 @@ export const useWRCSystem = () => {
         maxUses: 1,
         description: 'Blocks one obstacle'
       });
-      return true;
+      return { success: true, message: "Shield purchased!" };
     }
-    return false;
+    return { success: false, message: "Purchase failed." };
   };
 
   const buySword = async () => {
+    if (wrcBalance < 100) {
+      return { success: false, message: "Not enough WRC to buy this item." };
+    }
+    
     if (await spendWRC(100)) {
       setSword({
         id: 'sword',
@@ -106,35 +114,37 @@ export const useWRCSystem = () => {
         maxUses: 3,
         description: 'Destroys 3 obstacles'
       });
-      return true;
+      return { success: true, message: "Sword purchased!" };
     }
-    return false;
+    return { success: false, message: "Purchase failed." };
   };
 
   const useShield = () => {
-    if (shield && shield.uses && shield.uses > 0) {
-      const newUses = shield.uses - 1;
-      if (newUses <= 0) {
-        setShield(null);
-      } else {
-        setShield({ ...shield, uses: newUses });
-      }
-      return true;
+    if (!shield || !shield.uses || shield.uses <= 0) {
+      return { success: false, message: "You don't own this item yet!" };
     }
-    return false;
+    
+    const newUses = shield.uses - 1;
+    if (newUses <= 0) {
+      setShield(null);
+    } else {
+      setShield({ ...shield, uses: newUses });
+    }
+    return { success: true, message: "Shield activated!" };
   };
 
   const useSword = () => {
-    if (sword && sword.uses && sword.uses > 0) {
-      const newUses = sword.uses - 1;
-      if (newUses <= 0) {
-        setSword(null);
-      } else {
-        setSword({ ...sword, uses: newUses });
-      }
-      return true;
+    if (!sword || !sword.uses || sword.uses <= 0) {
+      return { success: false, message: "You don't own this item yet!" };
     }
-    return false;
+    
+    const newUses = sword.uses - 1;
+    if (newUses <= 0) {
+      setSword(null);
+    } else {
+      setSword({ ...sword, uses: newUses });
+    }
+    return { success: true, message: "Sword activated!" };
   };
 
   const grantFreeItems = () => {

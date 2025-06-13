@@ -54,6 +54,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [dolphinsUsed, setDolphinsUsed] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [showCoinFeedback, setShowCoinFeedback] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // WRC and shop system
   const wrcSystem = useWRCSystem();
@@ -84,6 +85,21 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   }, [wrcSystem]);
 
+  // Show error messages
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(""), 3000);
+    
+    // Play error sound
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEZBjuO1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+Dy');
+      audio.volume = 0.3;
+      audio.play().catch(() => {}); // Ignore audio play errors
+    } catch (error) {
+      console.log('Audio not supported');
+    }
+  };
+
   // Milestone tracking (based on score, not WRC)
   useEffect(() => {
     const milestones = [50, 100, 150];
@@ -113,24 +129,26 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
 
-  // Item usage handlers with WRC validation
+  // Item usage handlers with proper validation
   const handleUseShield = useCallback(() => {
-    if (wrcSystem.shield && wrcSystem.shield.uses && wrcSystem.shield.uses > 0) {
-      if (wrcSystem.useShield()) {
-        activateShield();
-        // Remove the next obstacle that would hit the player
-        gameState.setObstacles(prev => prev.slice(1));
-      }
+    const result = wrcSystem.useShield();
+    if (result.success) {
+      activateShield();
+      // Remove the next obstacle that would hit the player
+      gameState.setObstacles(prev => prev.slice(1));
+    } else {
+      showError(result.message);
     }
   }, [wrcSystem, activateShield]);
 
   const handleUseSword = useCallback(() => {
-    if (wrcSystem.sword && wrcSystem.sword.uses && wrcSystem.sword.uses > 0) {
-      if (wrcSystem.useSword()) {
-        activateSword();
-        // Remove up to 3 obstacles
-        gameState.setObstacles(prev => prev.slice(3));
-      }
+    const result = wrcSystem.useSword();
+    if (result.success) {
+      activateSword();
+      // Remove up to 3 obstacles
+      gameState.setObstacles(prev => prev.slice(3));
+    } else {
+      showError(result.message);
     }
   }, [wrcSystem, activateSword]);
 
@@ -280,9 +298,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           lives={gameState.lives}
           speedBoostCount={gameState.speedBoostCount}
           coinsCollected={gameState.coinsCollected}
+          wrcBalance={wrcSystem.wrcBalance}
         />
-        
-        <WRCDisplay balance={wrcSystem.wrcBalance} />
         
         <DolphinHelper
           onUse={() => setDolphinsUsed(prev => prev + 1)}
@@ -310,6 +327,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         
         {/* Coin collection feedback */}
         {showCoinFeedback && <CoinCollectionFeedback />}
+        
+        {/* Error message display */}
+        {errorMessage && (
+          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50">
+            <div className="bg-red-500 text-white font-bold text-lg px-6 py-3 rounded-lg shadow-lg animate-bounce">
+              {errorMessage}
+            </div>
+          </div>
+        )}
         
         {/* Shield effect */}
         {shieldActive && (
