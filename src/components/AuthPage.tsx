@@ -10,9 +10,10 @@ import type { Avatar } from "@/pages/Index";
 
 interface AuthPageProps {
   onAuthSuccess: () => void;
+  onGuestMode: () => void;
 }
 
-export const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
+export const AuthPage = ({ onAuthSuccess, onGuestMode }: AuthPageProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -169,7 +170,7 @@ export const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center space-y-2">
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-blue-600 hover:underline text-sm"
@@ -178,6 +179,16 @@ export const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
                 ? "Don't have an account? Sign up"
                 : "Already have an account? Sign in"}
             </button>
+            
+            <div className="mt-4">
+              <Button
+                onClick={onGuestMode}
+                variant="outline"
+                className="w-full"
+              >
+                Play as Guest
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
