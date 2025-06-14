@@ -62,6 +62,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const wrcSystem = useWRCSystem();
   const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
 
+  // Check if the player can afford anything in shop (above 50 WRC)
+  const canAffordShop = wrcSystem.wrc >= 50;
+
   // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
@@ -267,6 +270,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
+      {/* WRC Display stays up top (raises z index to not get overlapped) */}
+      <WRCDisplay balance={wrcSystem.wrc} />
+      {/* Shop Button - now appears below WRC display, pops if affordable */}
       <ShopButton
         show={
           !gameState.gameOver &&
@@ -278,6 +284,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           !showShop
         }
         onClick={() => setShowShop(true)}
+        userCanAfford={canAffordShop}
       />
       <div
         ref={gameAreaRef}

@@ -1,29 +1,15 @@
-
 import { Gear } from "./Game";
-
-interface GameUIProps {
-  level: number;
-  followMode: boolean;
-  currentGear: Gear;
-  speedBoost: boolean;
-  score: number;
-  lives: number;
-  speedBoostCount: number;
-  coinsCollected: number;
-  wrcBalance: number;
-}
-
-export const GameUI = ({ 
-  level, 
-  followMode, 
-  currentGear, 
-  speedBoost, 
-  score, 
-  lives, 
-  speedBoostCount, 
+export const GameUI = ({
+  level,
+  followMode,
+  currentGear,
+  speedBoost,
+  score,
+  lives,
+  speedBoostCount,
   coinsCollected,
   wrcBalance
-}: GameUIProps) => {
+}: any) => {
   return (
     <>
       {/* Score Display - Separate from WRC */}
@@ -35,21 +21,13 @@ export const GameUI = ({
         </div>
       </div>
 
-      {/* WRC Display - Top Right */}
-      <div className="absolute top-4 right-4 text-white font-bold drop-shadow-lg">
-        <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3">
-          <div className="text-lg md:text-xl flex items-center gap-2">
-            <span className="text-2xl">💰</span>
-            <span>WRC: {wrcBalance}</span>
-          </div>
-        </div>
-      </div>
+      {/* WRC Display was here - now moved out and removed */}
 
       {/* Debug Display - Bottom */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded">
         Score: {score} | WRC: {wrcBalance}
       </div>
-
+      
       {/* Speed boost indicator */}
       {speedBoost && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl animate-pulse">
