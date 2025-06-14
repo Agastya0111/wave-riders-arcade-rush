@@ -28,8 +28,8 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
            <ul className="list-disc list-inside text-gray-600 text-base space-y-2 mb-3">
             <li>🛡️ <strong>Shield (Ctrl+S):</strong> Costs WRC. Destroys one obstacle.</li>
             <li>⚔️ <strong>Sword (Ctrl+Shift+S):</strong> Costs WRC. Destroys three obstacles.</li>
-            <li>⭐ <strong>Starfish (Collectible):</strong> Grants temporary invincibility.</li>
-            <li>🧲 <strong>Magnet (Collectible):</strong> Automatically collects nearby coins.</li>
+            <li>🌟 <strong>Starfish (Collectible):</strong> Find and touch this item for temporary invincibility.</li>
+            <li>🧲 <strong>Magnet (Collectible):</strong> Find and touch this item to automatically collect nearby coins.</li>
           </ul>
           <div className="text-gray-500 text-xs">
             This guide helps you get started! For more tips, check the Help section in the main menu.
