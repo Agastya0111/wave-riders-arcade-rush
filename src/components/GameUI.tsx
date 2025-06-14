@@ -1,4 +1,5 @@
-import { Gear } from "./Game";
+
+import type { Gear } from "./Game.d";
 export const GameUI = ({
   level,
   followMode,

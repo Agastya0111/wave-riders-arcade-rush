@@ -1,5 +1,5 @@
 
-import { ObstacleType } from "./Game";
+import type { ObstacleType } from "./Game.d";
 
 interface ObstacleProps {
   obstacle: ObstacleType;

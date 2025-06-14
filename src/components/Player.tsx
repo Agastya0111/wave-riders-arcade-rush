@@ -1,6 +1,6 @@
 
 import { Avatar } from "@/pages/Index";
-import { Gear } from "./Game";
+import type { Gear } from "./Game.d";
 
 interface PlayerProps {
   avatar: Avatar;
