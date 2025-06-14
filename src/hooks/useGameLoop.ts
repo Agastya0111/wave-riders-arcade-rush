@@ -49,12 +49,14 @@ export const useGameLoop = ({
   const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
 
+  // NEW: Checks if newY is too close vertically to existing obstacles
   const isObstacleTooClose = (newY: number, newX: number) => {
     return obstacles.some(obstacle => {
       const distance = Math.sqrt(
         Math.pow(obstacle.x - newX, 2) + Math.pow(obstacle.y - newY, 2)
       );
-      return distance < 120;
+      // Tweak: Slightly increase min distance for more room in easy levels
+      return distance < 130;
     });
   };
 
@@ -93,20 +95,33 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // --- Increased density for levels 1-4 (faster spawn) ---
+        // --- Increased but reasonable density for levels 1-4 ---
         let shouldSpawn = false;
+        let effectiveMinSpawnInterval = 2450; // default for lv1-4, slightly busier than before
+
         if (level <= 4) {
+          // Make levels slightly busier: interval 2.15–2.45s depending on level
+          // Level 1: 2.45s, Level 2: 2.35s, Level 3: 2.25s, Level 4: 2.15s
+          effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
+
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 2700; // More frequent!
           const hasNoObstacles = updated.length === 0;
 
-          // Always force a spawn if there are no obstacles and 2.7+ seconds passed
-          if (timeSinceLastSpawn >= minSpawnInterval && hasNoObstacles) {
+          // Always force a spawn if no obstacles and min interval passed
+          if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
+            shouldSpawn = true;
+            setLastObstacleSpawn(currentTime);
+          } else if (
+            // Otherwise, random chance if last spawn interval is met
+            timeSinceLastSpawn >= effectiveMinSpawnInterval &&
+            Math.random() < 0.26 + 0.08 * level // 0.34 at level 1 to 0.58 at lv4
+          ) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);
           }
         } else {
-          if (Math.random() < 0.02) {
+          // Danger zone (lv5+): unchanged, hard
+          if (Math.random() < 0.020) {
             shouldSpawn = true;
           }
         }
@@ -118,12 +133,12 @@ export const useGameLoop = ({
             newObstacle = generateObstacle();
             attempts++;
           } while (
-            attempts < 5 &&
+            attempts < 7 && // try up to 7 times for better vertical safety
             level <= 4 &&
             isObstacleTooClose(newObstacle.y, newObstacle.x)
           );
 
-          if (attempts < 5 || level > 4) {
+          if (attempts < 7 || level > 4) {
             updated.push(newObstacle);
           }
         }
@@ -131,7 +146,6 @@ export const useGameLoop = ({
         return updated;
       });
 
-      // Update collectibles - spawn coins frequently for WRC collection
       setCollectibles(prev => {
         const updated = prev
           .map(collectible => ({
