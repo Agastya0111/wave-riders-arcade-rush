@@ -1,6 +1,4 @@
-
 import type { GameCollectibleType } from "@/components/Game.d";
-import type { CollectibleType as GeneratedCollectibleType } from "@/hooks/useGameLogic";
 import { checkCollision } from "@/utils/gameUtils";
 
 interface UpdateCollectiblesProps {
@@ -8,7 +6,7 @@ interface UpdateCollectiblesProps {
     currentTime: number;
     lastCollectibleSpawn: number;
     gameSpeed: number;
-    generateCollectible: () => GeneratedCollectibleType;
+    generateCollectible: () => GameCollectibleType;
 }
 
 interface UpdateCollectiblesResult {

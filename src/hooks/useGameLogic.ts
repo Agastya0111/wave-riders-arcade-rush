@@ -1,19 +1,10 @@
-
 import { useCallback } from "react";
-import type { ObstacleType } from "@/components/Game.d";
+import type { ObstacleType, GameCollectibleType } from "@/components/Game.d";
 
 interface UseGameLogicProps {
   level: number;
   gameSpeed: number;
   speedBoost: boolean;
-}
-
-export interface CollectibleType {
-  id: string;
-  type: "coin" | "bubble";
-  x: number;
-  y: number;
-  speed: number;
 }
 
 export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps) => {
@@ -95,7 +86,7 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
     return obstacle;
   }, [gameSpeed, level, speedBoost]);
 
-  const generateCollectible = useCallback((): CollectibleType => {
+  const generateCollectible = useCallback((): GameCollectibleType => {
     // Prioritize coins for WRC collection - 90% chance for coins
     const coinChance = 0.9;
     const type = Math.random() < coinChance ? "coin" : "bubble";

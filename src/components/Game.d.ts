@@ -1,3 +1,4 @@
+
 import type { CollectibleType as OriginalGameCollectibleType } from "@/hooks/useGameLogic";
 
 export interface ObstacleType {
@@ -13,7 +14,11 @@ export interface ObstacleType {
 }
 export type Gear = "surfboard" | "bike" | "ship";
 
-export interface GameCollectibleType extends Omit<OriginalGameCollectibleType, 'type'> {
+export interface GameCollectibleType {
+  id: string;
   type: "coin" | "bubble" | "starfish" | "magnet";
+  x: number;
+  y: number;
+  speed: number;
   double?: boolean;
 }
