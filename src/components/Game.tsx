@@ -24,6 +24,9 @@ import { useTouchControls } from "@/hooks/useTouchControls";
 import { useWRCSystem } from "@/hooks/useWRCSystem";
 import { useItemEffects } from "@/hooks/useItemEffects";
 import type { Avatar } from "@/pages/Index";
+import { ShopButton } from "./ShopButton";
+import { ErrorMessage } from "./ErrorMessage";
+import { EffectOverlay } from "./EffectOverlay";
 
 export interface ObstacleType {
   id: string;
@@ -261,18 +264,21 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     );
   }
 
+  // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
-      {/* Floating Shop Button at top right, visible except during end-game or existing overlays */}
-      {!gameState.gameOver && !gameState.victory && !gameState.showStoryPopup && !gameState.showMilestonePopup && !gameState.showShop && !gameState.showSignupPrompt && !showShop && (
-        <button
-          className="fixed top-7 right-16 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold px-5 py-2 rounded-full shadow-xl z-[70] border-2 border-yellow-300 transition-all animate-enter"
-          style={{ fontSize: 22, letterSpacing: 2 }}
-          onClick={() => setShowShop(true)}
-        >
-          🛒 Shop
-        </button>
-      )}
+      <ShopButton
+        show={
+          !gameState.gameOver &&
+          !gameState.victory &&
+          !gameState.showStoryPopup &&
+          !gameState.showMilestonePopup &&
+          !gameState.showShop &&
+          !gameState.showSignupPrompt &&
+          !showShop
+        }
+        onClick={() => setShowShop(true)}
+      />
       <div
         ref={gameAreaRef}
         className="relative w-full h-full"
@@ -281,22 +287,19 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <GameBackground />
-        
+
         <Player 
           x={playerX} 
           y={gameState.playerY} 
           avatar={avatar}
           gear={currentGear}
         />
-        
         {gameState.obstacles.map((obstacle) => (
           <Obstacle key={obstacle.id} obstacle={obstacle} />
         ))}
-        
         {gameState.collectibles.map((collectible) => (
           <Collectible key={collectible.id} collectible={collectible} />
         ))}
-        
         <GameUI
           level={gameState.level}
           followMode={followMode}
@@ -308,11 +311,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           coinsCollected={gameState.coinsCollected}
           wrcBalance={wrcSystem.wrc}
         />
-        
         <DolphinHelper
           onUse={() => setDolphinsUsed(prev => prev + 1)}
         />
-        
         <TouchControls 
           speedBoostCount={gameState.speedBoostCount}
           speedBoost={gameState.speedBoost}
@@ -324,7 +325,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
             }
           }}
         />
-        
         <ItemControls
           shieldAvailable={wrcSystem.shieldAvailable}
           swordUses={wrcSystem.swordUses}
@@ -332,51 +332,26 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           onUseSword={handleUseSword}
           isMobile={isMobile}
         />
-        
-        {/* Coin collection feedback - shows +1 WRC */}
         {showCoinFeedback && <CoinCollectionFeedback />}
-        
-        {/* Error message display */}
-        {errorMessage && (
-          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50">
-            <div className="bg-red-500 text-white font-bold text-lg px-6 py-3 rounded-lg shadow-lg animate-bounce">
-              {errorMessage}
-            </div>
-          </div>
-        )}
-        
-        {/* Shield effect */}
-        {shieldActive && (
-          <div className="absolute inset-0 bg-blue-300/30 animate-pulse pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl animate-spin">
-              ✨
-            </div>
-          </div>
-        )}
-        
-        {/* Sword effect */}
-        {swordActive && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl animate-bounce">
-              ⚡
-            </div>
-          </div>
-        )}
-        
+        {/* Error Message refactored */}
+        <ErrorMessage message={errorMessage} />
+        {/* Shield and Sword Effects refactored */}
+        <EffectOverlay shieldActive={shieldActive} swordActive={swordActive} />
+
         {gameState.showStoryPopup && (
           <StoryPopup onContinue={() => {
             gameState.setShowStoryPopup(false);
             gameState.setStoryShown(true);
           }} />
         )}
-        
+
         {gameState.showSignupPrompt && (
           <SignupPrompt 
             onSignup={() => gameState.setShowSignupPrompt(false)}
             onContinue={() => gameState.setShowSignupPrompt(false)}
           />
         )}
-        
+
         {gameState.showMilestonePopup && (
           <MilestonePopup
             score={gameState.score}
@@ -394,7 +369,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
             }}
           />
         )}
-        
+
         {gameState.showShop && (
           <ShopDialog
             wrc={wrcSystem.wrc}
