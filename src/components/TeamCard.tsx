@@ -18,7 +18,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({ team, onJoinTeam, isUserInTe
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           {team.name}
-          {team.leader_id === currentUserId && <Crown className="w-5 h-5 text-yellow-500" title="You are the leader" />}
+          {team.leader_id === currentUserId && <Crown className="w-5 h-5 text-yellow-500"><title>You are the leader</title></Crown>}
         </CardTitle>
         <CardDescription>{team.description || "No description."}</CardDescription>
       </CardHeader>
