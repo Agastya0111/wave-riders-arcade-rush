@@ -1,7 +1,4 @@
-
 import { createContext, useContext, useState, useRef, ReactNode } from "react";
-import { GameOver } from "@/components/GameOver";
-import { Victory } from "@/components/Victory";
 import { useGameState, GameStateHook } from "@/hooks/useGameState";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useGameControls } from "@/hooks/useGameControls";
@@ -14,9 +11,6 @@ import type { Avatar } from "@/pages/Index";
 
 import { useGameInteractions } from "@/hooks/useGameInteractions";
 import { useGameActions } from "@/hooks/useGameActions";
-import { GameRenderer } from "@/components/GameRenderer";
-import { GameHUD } from "@/components/GameHUD";
-import { GamePopups } from "@/components/GamePopups";
 import { Challenge } from "@/components/ChallengeBanner";
 import { useGameDerivedState } from "@/hooks/useGameDerivedState";
 import { useGameLifecycleEffects } from "@/hooks/useGameLifecycleEffects";
