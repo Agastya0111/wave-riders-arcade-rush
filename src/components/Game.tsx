@@ -224,6 +224,21 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setDolphinsUsed(0);
   }, [gameState]);
 
+  // New: Game Shop state moved to top of component
+  const [showShop, setShowShop] = useState(false);
+
+  // Modified: When shop is open, also pause the game
+  useEffect(() => {
+    if (showShop) {
+      gameState.setGamePaused(true);
+    } else if (!gameState.showShop) {
+      // Only unpause if there isn't another popup/overlay open
+      gameState.setGamePaused(false);
+    }
+    // Only trigger on showShop open/close
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showShop]);
+
   if (gameState.gameOver) {
     return (
       <GameOver
@@ -248,6 +263,16 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
+      {/* Floating Shop Button at top right, visible except during end-game or existing overlays */}
+      {!gameState.gameOver && !gameState.victory && !gameState.showStoryPopup && !gameState.showMilestonePopup && !gameState.showShop && !gameState.showSignupPrompt && !showShop && (
+        <button
+          className="fixed top-7 right-16 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold px-5 py-2 rounded-full shadow-xl z-[70] border-2 border-yellow-300 transition-all animate-enter"
+          style={{ fontSize: 22, letterSpacing: 2 }}
+          onClick={() => setShowShop(true)}
+        >
+          🛒 Shop
+        </button>
+      )}
       <div
         ref={gameAreaRef}
         className="relative w-full h-full"
@@ -382,6 +407,15 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           />
         )}
       </div>
+      {/* In-game shop dialog opens when the shop button is clicked, game is paused while open */}
+      {showShop && (
+        <ShopDialog
+          wrc={wrcSystem.wrc}
+          onBuyShield={wrcSystem.buyShield}
+          onBuySword={wrcSystem.buySword}
+          onClose={() => setShowShop(false)}
+        />
+      )}
     </div>
   );
 };

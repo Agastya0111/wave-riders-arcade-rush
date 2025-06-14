@@ -1,95 +1,98 @@
 
+import React from "react";
+
 export const GameBackground = () => {
   return (
     <div className="absolute inset-0">
-      {/* Deep ocean gradient with better colors */}
-      <div className="absolute w-full h-full bg-gradient-to-b from-cyan-300 via-blue-500 to-indigo-800" />
-      
-      {/* Animated caustic light patterns */}
-      <div className="absolute inset-0 opacity-30">
+      {/* Realistic deep ocean gradient */}
+      <div className="absolute w-full h-full bg-gradient-to-b from-cyan-300 via-blue-500 to-indigo-900" />
+
+      {/* Sunlight rays - more concentrated and realistic */}
+      <div className="absolute top-0 left-0 w-full h-48 pointer-events-none" style={{
+        background: 'repeating-linear-gradient(105deg, rgba(255,255,210,0.10) 0px, rgba(255,255,230,0.09) 18px, transparent 32px, transparent 57px)'
+      }} />
+      {/* Animated caustic light effect */}
+      <div className="absolute inset-0 opacity-25 pointer-events-none">
         <div 
-          className="absolute w-full h-full bg-gradient-to-br from-cyan-200/40 to-transparent"
+          className="absolute w-full h-full"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(34, 211, 238, 0.3) 0%, transparent 30%),
-                             radial-gradient(circle at 60% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 40%),
-                             radial-gradient(circle at 80% 80%, rgba(147, 197, 253, 0.3) 0%, transparent 35%)`,
-            animation: 'caustics 8s ease-in-out infinite alternate'
+            backgroundImage: `radial-gradient(circle at 25% 53%, rgba(61, 201, 255, 0.20) 0%, transparent 38%),
+                              radial-gradient(circle at 65% 33%, rgba(69, 219, 255, 0.15) 0%, transparent 41%),
+                              radial-gradient(circle at 83% 84%, rgba(159, 237, 253, 0.20) 0%, transparent 36%)`,
+            animation: 'caustics 9s ease-in-out infinite alternate'
           }}
         />
       </div>
-      
-      {/* Animated wave layers with better depth */}
+      {/* New: More realistic wave layers */}
       <div 
-        className="absolute w-[150%] h-40 bg-gradient-to-r from-blue-300/80 to-cyan-300/70 wave1" 
-        style={{ 
-          bottom: '0%', 
-          left: '-25%',
-          clipPath: 'polygon(0 40px, 100% 0px, 100% 100%, 0% 100%)',
-        }} 
+        className="absolute w-[200vw] h-48 rounded-b-full z-10"
+        style={{
+          top: '17%',
+          left: '-50vw',
+          background: 'linear-gradient(to bottom, #bee9eb 70%, rgba(190,233,235,0.0) 96%)',
+          boxShadow: '0 70px 130px 25px #83c5eaff',
+          opacity: 0.22,
+          animation: 'wave1 7.8s ease-in-out infinite',
+        }}
       />
       <div 
-        className="absolute w-[150%] h-32 bg-gradient-to-r from-blue-200/70 to-cyan-200/60 wave2" 
-        style={{ 
-          bottom: '8%', 
-          left: '-30%',
-          clipPath: 'polygon(0 30px, 100% 0px, 100% 100%, 0% 100%)',
-        }} 
+        className="absolute w-[140vw] h-40 left-[-20vw] bottom-[7%] rounded-b-full z-10"
+        style={{
+          background: 'linear-gradient(110deg, #b6e0fe 42%, #97c6e3a8 100%)',
+          boxShadow: '0 16px 52px 6px #74c0eb88',
+          opacity: 0.23,
+          animation: 'wave2 11s ease-in-out infinite',
+        }}
       />
       <div 
-        className="absolute w-[150%] h-24 bg-gradient-to-r from-white/60 to-cyan-100/50 wave3" 
-        style={{ 
-          bottom: '15%', 
-          left: '-20%',
-          clipPath: 'polygon(0 20px, 100% 0px, 100% 100%, 0% 100%)',
-        }} 
+        className="absolute w-full h-28 bottom-0 left-0 bg-gradient-to-b from-cyan-100/60 to-blue-300/0 z-20"
+        style={{
+          filter: 'blur(3px)'
+        }}
       />
-      
-      {/* Enhanced foam and bubbles with varied sizes */}
-      <div className="absolute inset-0 opacity-25">
+      {/* Foam and bubbles (random sizes) */}
+      <div className="absolute inset-0 opacity-23 pointer-events-none z-20">
         {Array.from({ length: 20 }, (_, i) => (
           <div
             key={i}
-            className={`absolute bg-white rounded-full animate-pulse ${
-              i % 3 === 0 ? 'w-3 h-3' : i % 3 === 1 ? 'w-2 h-2' : 'w-1 h-1'
-            }`}
+            className={`absolute bg-white/80 rounded-full animate-pulse`}
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 4}s`,
-              animationDuration: `${2 + Math.random() * 3}s`
+              width: i % 3 === 0 ? 14 : i % 3 === 1 ? 8 : 5,
+              height: i % 3 === 0 ? 14 : i % 3 === 1 ? 8 : 5,
+              left: `${9 + Math.random() * 81}%`,
+              top: `${Math.random() * 92}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${2 + Math.random() * 3.5}s`
             }}
           />
         ))}
       </div>
-      
-      {/* Floating particles for depth */}
-      <div className="absolute inset-0 opacity-15">
+      {/* Floating particles */}
+      <div className="absolute inset-0 opacity-17 pointer-events-none z-20">
         {Array.from({ length: 12 }, (_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-cyan-200 rounded-full"
+            className="absolute bg-cyan-200 rounded-full"
             style={{
+              width: 6 + Math.random() * 6,
+              height: 6 + Math.random() * 6,
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animation: `float${(i % 3) + 1} ${4 + Math.random() * 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`
+              animation: `float${(i % 3) + 1} ${4 + Math.random() * 2.5}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 3.5}s`
             }}
           />
         ))}
       </div>
-      
-      {/* Sunlight rays from above */}
-      <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-yellow-200/20 via-cyan-200/10 to-transparent opacity-60" />
-      
       {/* Dynamic water ripples */}
-      <div className="absolute inset-0 opacity-20">
+      <div className="absolute inset-0 opacity-16 pointer-events-none">
         <div 
-          className="absolute top-1/4 left-1/4 w-32 h-32 border-2 border-cyan-300 rounded-full animate-ping"
-          style={{ animationDuration: '4s' }}
+          className="absolute top-1/3 left-1/3 w-24 h-24 border-2 border-cyan-200 rounded-full animate-ping"
+          style={{ animationDuration: '6s' }}
         />
         <div 
-          className="absolute top-3/4 right-1/4 w-24 h-24 border-2 border-blue-300 rounded-full animate-ping"
-          style={{ animationDuration: '5s', animationDelay: '1s' }}
+          className="absolute top-4/5 right-2 w-20 h-20 border-2 border-blue-100 rounded-full animate-ping"
+          style={{ animationDuration: '7.5s', animationDelay: '1.2s' }}
         />
       </div>
     </div>
