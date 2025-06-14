@@ -332,7 +332,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     );
   }
 
-  // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
       {/* Session/daily challenge */}
