@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ObstacleType } from "@/components/Game";
 import { CollectibleType } from "@/hooks/useGameLogic";
@@ -24,6 +25,8 @@ export const useGameState = () => {
   const [milestoneReached, setMilestoneReached] = useState<number[]>([]);
   const [showShop, setShowShop] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
+  const [wcrTriggered, setWcrTriggered] = useState(false); // New state for WCR
+  const [showWCRPopup, setShowWCRPopup] = useState(false); // New state for WCR popup
 
   const resetGame = () => {
     setPlayerY(300);
@@ -47,6 +50,8 @@ export const useGameState = () => {
     setMilestoneReached([]);
     setShowShop(false);
     setGamePaused(false);
+    setWcrTriggered(false); // Reset WCR state
+    setShowWCRPopup(false); // Reset WCR popup state
   };
 
   return {
@@ -72,6 +77,8 @@ export const useGameState = () => {
     milestoneReached,
     showShop,
     gamePaused,
+    wcrTriggered, // Export new state
+    showWCRPopup, // Export new state
     // Setters
     setPlayerY,
     setObstacles,
@@ -94,9 +101,12 @@ export const useGameState = () => {
     setMilestoneReached,
     setShowShop,
     setGamePaused,
+    setWcrTriggered, // Export new setter
+    setShowWCRPopup, // Export new setter
     // Utils
     resetGame,
   };
 };
 
 export type GameStateHook = ReturnType<typeof useGameState>;
+

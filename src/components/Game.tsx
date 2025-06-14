@@ -140,12 +140,27 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   }, [gameActions.handleUseShield, gameActions.handleUseSword, gameState.gameOver, gameState.victory, gameState.gamePaused]);
   
   useEffect(() => {
-    if (localShowShop || gameState.showShop || gameState.showStoryPopup || gameState.showMilestonePopup || gameState.showSignupPrompt) {
+    if (
+      localShowShop ||
+      gameState.showShop ||
+      gameState.showStoryPopup ||
+      gameState.showMilestonePopup ||
+      gameState.showSignupPrompt ||
+      gameState.showWCRPopup
+    ) {
       gameState.setGamePaused(true);
     } else {
       gameState.setGamePaused(false);
     }
-  }, [localShowShop, gameState.showShop, gameState.showStoryPopup, gameState.showMilestonePopup, gameState.showSignupPrompt, gameState.setGamePaused]);
+  }, [
+    localShowShop,
+    gameState.showShop,
+    gameState.showStoryPopup,
+    gameState.showMilestonePopup,
+    gameState.showSignupPrompt,
+    gameState.showWCRPopup,
+    gameState.setGamePaused,
+  ]);
 
 
   useEffect(() => {
@@ -171,6 +186,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
                          !gameState.victory &&
                          !gameState.showStoryPopup &&
                          !gameState.showMilestonePopup &&
+                         !gameState.showWCRPopup &&
                          !gameState.showShop &&
                          !gameState.showSignupPrompt &&
                          !localShowShop;

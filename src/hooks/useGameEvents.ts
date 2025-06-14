@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { checkCollision } from "@/utils/gameUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +18,7 @@ interface UseGameEventsProps {
   obstacles: ObstacleType[];
   playerX: number;
   playerY: number;
+  wcrTriggered: boolean; // New prop
   
   // Setters
   setShowStoryPopup: (value: boolean) => void;
@@ -29,6 +29,8 @@ interface UseGameEventsProps {
   setObstacles: (fn: (prev: ObstacleType[]) => ObstacleType[]) => void;
   setGameOver: (value: boolean) => void;
   setShowSignupPrompt: (value: boolean) => void;
+  setWcrTriggered: (value: boolean) => void; // New prop
+  setShowWCRPopup: (value: boolean) => void; // New prop
 }
 
 export const useGameEvents = ({
@@ -43,6 +45,7 @@ export const useGameEvents = ({
   obstacles,
   playerX,
   playerY,
+  wcrTriggered, // Destructure new prop
   setShowStoryPopup,
   setVictory,
   setLevel,
@@ -51,6 +54,8 @@ export const useGameEvents = ({
   setObstacles,
   setGameOver,
   setShowSignupPrompt,
+  setWcrTriggered, // Destructure new prop
+  setShowWCRPopup, // Destructure new prop
 }: UseGameEventsProps) => {
   const { user } = useAuth();
 
@@ -74,6 +79,14 @@ export const useGameEvents = ({
       setShowStoryPopup(true);
     }
   }, [level, storyShown, showStoryPopup, setShowStoryPopup]);
+
+  // WCR Popup Trigger
+  useEffect(() => {
+    if (!gameOver && !victory && score >= 500 && !wcrTriggered) {
+      setWcrTriggered(true);
+      setShowWCRPopup(true);
+    }
+  }, [score, gameOver, victory, wcrTriggered, setWcrTriggered, setShowWCRPopup]);
 
   // Victory condition
   useEffect(() => {
