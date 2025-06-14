@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Challenge } from "@/components/ChallengeBanner"; // Assuming Challenge type is here or define locally
 
@@ -77,6 +76,6 @@ export const useGameInteractions = ({
     errorMessage,
     handleCoinCollected, // This will be passed to useGameLoop
     showError,         // This will be used by useGameActions
+    challenge, // Added challenge to the return object
   };
 };
-

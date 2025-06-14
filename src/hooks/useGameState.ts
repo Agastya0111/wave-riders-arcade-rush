@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ObstacleType } from "@/components/Game";
 import { CollectibleType } from "@/hooks/useGameLogic";
@@ -99,3 +98,5 @@ export const useGameState = () => {
     resetGame,
   };
 };
+
+export type GameStateHook = ReturnType<typeof useGameState>;

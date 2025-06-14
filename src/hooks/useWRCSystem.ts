@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,3 +119,5 @@ export const useWRCSystem = () => {
     useSword
   };
 };
+
+export type WRCSystemHook = ReturnType<typeof useWRCSystem>;
