@@ -25,6 +25,8 @@ export const useGameState = () => {
   const [milestoneReached, setMilestoneReached] = useState<number[]>([]);
   const [showShop, setShowShop] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
+  const [invincibilityItems, setInvincibilityItems] = useState(0);
+  const [magnetItems, setMagnetItems] = useState(0);
   // Removed wcrTriggered and showWCRPopup states
 
   const resetGame = () => {
@@ -49,6 +51,8 @@ export const useGameState = () => {
     setMilestoneReached([]);
     setShowShop(false);
     setGamePaused(false);
+    setInvincibilityItems(0);
+    setMagnetItems(0);
     // Removed reset for WCR state
   };
 
@@ -75,6 +79,8 @@ export const useGameState = () => {
     milestoneReached,
     showShop,
     gamePaused,
+    invincibilityItems,
+    magnetItems,
     // Removed wcrTriggered, showWCRPopup from returned state
     // Setters
     setPlayerY,
@@ -98,6 +104,8 @@ export const useGameState = () => {
     setMilestoneReached,
     setShowShop,
     setGamePaused,
+    setInvincibilityItems,
+    setMagnetItems,
     // Removed setWcrTriggered, setShowWCRPopup from returned setters
     // Utils
     resetGame,

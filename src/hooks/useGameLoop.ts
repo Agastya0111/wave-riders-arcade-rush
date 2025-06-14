@@ -25,6 +25,8 @@ interface UseGameLoopProps {
   setLastObstacleSpawn: (value: number) => void;
   setLastCollectibleSpawn: (value: number) => void;
   onCoinCollected?: () => void;
+  setInvincibilityItems: (fn: (prev: number) => number) => void;
+  setMagnetItems: (fn: (prev: number) => number) => void;
 }
 
 export const useGameLoop = ({
@@ -48,6 +50,8 @@ export const useGameLoop = ({
   setLastObstacleSpawn,
   setLastCollectibleSpawn,
   onCoinCollected,
+  setInvincibilityItems,
+  setMagnetItems,
 }: UseGameLoopProps) => {
   const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
@@ -252,12 +256,12 @@ export const useGameLoop = ({
         } else if (collectible.type === "bubble") {
           setScore(prev => prev + 50);
         } else if ((collectible as any).type === "starfish") {
-          window.dispatchEvent(new Event("powerup-invincibility")); 
+          setInvincibilityItems(prev => prev + 1);
         } else if ((collectible as any).type === "magnet") {
-          window.dispatchEvent(new Event("powerup-magnet"));
+          setMagnetItems(prev => prev + 1);
         }
         setCollectibles(prev => prev.filter(c => c.id !== collectible.id));
       }
     });
-  }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles, onCoinCollected]);
+  }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles, onCoinCollected, setInvincibilityItems, setMagnetItems]);
 };

@@ -19,6 +19,16 @@ export const useGameInteractions = ({
   const [showCoinFeedback, setShowCoinFeedback] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const activateInvincibility = useCallback(() => {
+    setIsInvincible(true);
+    setTimeout(() => setIsInvincible(false), 5000);
+  }, []);
+
+  const activateMagnet = useCallback(() => {
+    setMagnetActive(true);
+    setTimeout(() => setMagnetActive(false), 4000);
+  }, []);
+
   const handleCoinCollected = useCallback(() => {
     wrcSystemEarnWRC(1); // Call the abstracted WRC earning function
     setShowCoinFeedback(true);
@@ -47,23 +57,6 @@ export const useGameInteractions = ({
   }, [setErrorMessage]);
 
   useEffect(() => {
-    function handleInvincibility() {
-      setIsInvincible(true);
-      setTimeout(() => setIsInvincible(false), 5000);
-    }
-    function handleMagnet() {
-      setMagnetActive(true);
-      setTimeout(() => setMagnetActive(false), 4000);
-    }
-    window.addEventListener("powerup-invincibility", handleInvincibility);
-    window.addEventListener("powerup-magnet", handleMagnet);
-    return () => {
-      window.removeEventListener("powerup-invincibility", handleInvincibility);
-      window.removeEventListener("powerup-magnet", handleMagnet);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!challenge.completed && coinsCollected >= 7) {
       setChallenge((prevChallenge) => ({ ...prevChallenge, completed: true }));
     }
@@ -77,5 +70,7 @@ export const useGameInteractions = ({
     handleCoinCollected, // This will be passed to useGameLoop
     showError,         // This will be used by useGameActions
     challenge, // Added challenge to the return object
+    activateInvincibility,
+    activateMagnet,
   };
 };

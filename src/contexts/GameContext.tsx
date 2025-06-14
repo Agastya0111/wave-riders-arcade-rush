@@ -48,6 +48,8 @@ interface GameContextValue {
   handleReplayRequest: () => void;
   avatar: Avatar;
   onSignup: () => void;
+  handleUseInvincibility: () => void;
+  handleUseMagnet: () => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -150,6 +152,24 @@ export const GameProvider = ({ avatar, onRestart, onSignup, children }: GameProv
     gameActions.handleRestartGame();
   };
 
+  const handleUseInvincibility = () => {
+    if (gameState.invincibilityItems > 0) {
+      gameState.setInvincibilityItems(prev => prev - 1);
+      gameInteractions.activateInvincibility();
+    } else {
+      gameInteractions.showError("No starfish items available!");
+    }
+  };
+
+  const handleUseMagnet = () => {
+    if (gameState.magnetItems > 0) {
+      gameState.setMagnetItems(prev => prev - 1);
+      gameInteractions.activateMagnet();
+    } else {
+      gameInteractions.showError("No magnet items available!");
+    }
+  };
+
   const value = {
     gameState,
     wrcSystem,
@@ -170,6 +190,8 @@ export const GameProvider = ({ avatar, onRestart, onSignup, children }: GameProv
     handleReplayRequest,
     avatar,
     onSignup,
+    handleUseInvincibility,
+    handleUseMagnet,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

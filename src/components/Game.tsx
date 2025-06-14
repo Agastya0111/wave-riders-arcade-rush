@@ -34,6 +34,8 @@ const GameContent = () => {
     replayOverlayVisible,
     handleReplayRequest,
     onSignup,
+    handleUseInvincibility,
+    handleUseMagnet,
   } = useGame();
 
   if (gameState.gameOver) {
@@ -101,6 +103,10 @@ const GameContent = () => {
         dolphinsUsed={dolphinsUsed}
         setDolphinsUsed={setDolphinsUsed}
         activateSpeedBoost={gameControls.activateSpeedBoost}
+        invincibilityItems={gameState.invincibilityItems}
+        magnetItems={gameState.magnetItems}
+        onUseInvincibility={handleUseInvincibility}
+        onUseMagnet={handleUseMagnet}
       />
       <GamePopups
         gameState={gameState}

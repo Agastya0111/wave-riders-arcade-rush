@@ -1,3 +1,4 @@
+
 import React from "react";
 import { WRCDisplay } from "./WRCDisplay";
 import { ShopButton } from "./ShopButton";
@@ -37,6 +38,10 @@ interface GameHUDProps {
   dolphinsUsed: number;
   setDolphinsUsed: React.Dispatch<React.SetStateAction<number>>;
   activateSpeedBoost: () => void;
+  invincibilityItems: number;
+  magnetItems: number;
+  onUseInvincibility: () => void;
+  onUseMagnet: () => void;
 }
 
 export const GameHUD = ({
@@ -54,6 +59,10 @@ export const GameHUD = ({
   dolphinsUsed,
   setDolphinsUsed,
   activateSpeedBoost,
+  invincibilityItems,
+  magnetItems,
+  onUseInvincibility,
+  onUseMagnet,
 }: GameHUDProps) => {
   return (
     <>
@@ -90,6 +99,29 @@ export const GameHUD = ({
         onUseSword={gameActions.handleUseSword}
         isMobile={isMobile}
       />
+      {/* New Power-up controls */}
+      <div className="absolute bottom-20 right-4 flex flex-col space-y-2 z-20">
+        {invincibilityItems > 0 && (
+          <button
+            className="w-14 h-14 rounded-full text-2xl font-bold transition-all bg-yellow-400 hover:bg-yellow-500 active:scale-95 text-white shadow-lg flex flex-col items-center justify-center relative"
+            onClick={onUseInvincibility}
+            aria-label={`Use Starfish (${invincibilityItems} left)`}
+          >
+            <span>⭐</span>
+            <span className="text-xs absolute bottom-1">{invincibilityItems}</span>
+          </button>
+        )}
+        {magnetItems > 0 && (
+          <button
+            className="w-14 h-14 rounded-full text-2xl font-bold transition-all bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white shadow-lg flex flex-col items-center justify-center relative"
+            onClick={onUseMagnet}
+            aria-label={`Use Magnet (${magnetItems} left)`}
+          >
+            <span>🧲</span>
+            <span className="text-xs absolute bottom-1">{magnetItems}</span>
+          </button>
+        )}
+      </div>
       {gameInteractions.showCoinFeedback && <CoinCollectionFeedback />}
       <ErrorMessage message={gameInteractions.errorMessage} />
       <EffectOverlay
