@@ -35,7 +35,7 @@ export const GameUI = ({
         </div>
       </div>
 
-      {/* WRC Display - Completely Separate */}
+      {/* WRC Display - Top Right */}
       <div className="absolute top-4 right-4 text-white font-bold drop-shadow-lg">
         <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3">
           <div className="text-lg md:text-xl flex items-center gap-2">
@@ -43,6 +43,11 @@ export const GameUI = ({
             <span>WRC: {wrcBalance}</span>
           </div>
         </div>
+      </div>
+
+      {/* Debug Display - Bottom */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded">
+        Score: {score} | WRC: {wrcBalance}
       </div>
 
       {/* Speed boost indicator */}

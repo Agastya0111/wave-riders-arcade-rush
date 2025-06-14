@@ -14,9 +14,9 @@ export interface ShopItem {
 }
 
 export const useWRCSystem = () => {
-  const [wrc, setWrc] = useState(0); // WRC is completely separate from score
-  const [shield, setShield] = useState<ShopItem | null>(null);
-  const [sword, setSword] = useState<ShopItem | null>(null);
+  const [wrc, setWrc] = useState(0);
+  const [shieldAvailable, setShieldAvailable] = useState(false);
+  const [swordUses, setSwordUses] = useState(0);
   const { user } = useAuth();
 
   // Load WRC balance from localStorage or Supabase
@@ -69,90 +69,51 @@ export const useWRCSystem = () => {
     await saveWRCBalance(newBalance);
   };
 
-  const spendWRC = async (amount: number) => {
-    if (wrc >= amount) {
-      const newBalance = wrc - amount;
-      setWrc(newBalance);
-      await saveWRCBalance(newBalance);
-      return true;
-    }
-    return false;
-  };
-
   const buyShield = async () => {
-    if (wrc < 50) {
-      return { success: false, message: "Not enough WRC." };
-    }
-    
-    if (await spendWRC(50)) {
-      setShield({
-        id: 'shield',
-        name: 'Shield',
-        icon: '🛡️',
-        price: 50,
-        uses: 1,
-        maxUses: 1,
-        description: 'Blocks one obstacle'
-      });
+    if (wrc >= 50) {
+      const newBalance = wrc - 50;
+      setWrc(newBalance);
+      setShieldAvailable(true);
+      await saveWRCBalance(newBalance);
       return { success: true, message: "Shield purchased!" };
     }
-    return { success: false, message: "Purchase failed." };
+    return { success: false, message: "Not enough WRC." };
   };
 
   const buySword = async () => {
-    if (wrc < 100) {
-      return { success: false, message: "Not enough WRC." };
-    }
-    
-    if (await spendWRC(100)) {
-      setSword({
-        id: 'sword',
-        name: 'Sword',
-        icon: '⚔️',
-        price: 100,
-        uses: 3,
-        maxUses: 3,
-        description: 'Destroys 3 obstacles'
-      });
+    if (wrc >= 100) {
+      const newBalance = wrc - 100;
+      setWrc(newBalance);
+      setSwordUses(3);
+      await saveWRCBalance(newBalance);
       return { success: true, message: "Sword purchased!" };
     }
-    return { success: false, message: "Purchase failed." };
+    return { success: false, message: "Not enough WRC." };
   };
 
   const useShield = () => {
-    if (!shield || !shield.uses || shield.uses <= 0) {
-      return { success: false, message: "You don't own this item yet!" };
+    if (!shieldAvailable) {
+      return { success: false, message: "You don't own this yet!" };
     }
     
-    const newUses = shield.uses - 1;
-    if (newUses <= 0) {
-      setShield(null);
-    } else {
-      setShield({ ...shield, uses: newUses });
-    }
+    setShieldAvailable(false);
     return { success: true, message: "Shield activated!" };
   };
 
   const useSword = () => {
-    if (!sword || !sword.uses || sword.uses <= 0) {
-      return { success: false, message: "You don't own this item yet!" };
+    if (swordUses <= 0) {
+      return { success: false, message: "You don't own this yet!" };
     }
     
-    const newUses = sword.uses - 1;
-    if (newUses <= 0) {
-      setSword(null);
-    } else {
-      setSword({ ...sword, uses: newUses });
-    }
+    setSwordUses(prev => prev - 1);
     return { success: true, message: "Sword activated!" };
   };
 
   return {
-    wrc, // Use 'wrc' instead of 'wrcBalance' for clarity
-    shield,
-    sword,
+    wrc,
+    shieldAvailable,
+    swordUses,
     earnWRC,
-    spendWRC,
     buyShield,
     buySword,
     useShield,

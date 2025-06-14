@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { ObstacleType } from "@/components/Game";
 import { CollectibleType, useGameLogic } from "@/hooks/useGameLogic";
@@ -133,7 +132,7 @@ export const useGameLoop = ({
         return updated;
       });
 
-      // Update collectibles - spawn more frequently for coin collection
+      // Update collectibles - spawn coins frequently for WRC collection
       setCollectibles(prev => {
         const updated = prev
           .map(collectible => ({
@@ -154,7 +153,7 @@ export const useGameLoop = ({
         return updated;
       });
 
-      setScore(prev => prev + 10); // Score increases by time, not coins
+      setScore(prev => prev + 10); // Score increases by time, NOT by coins
     }, 16);
 
     return () => clearInterval(gameLoop);
@@ -181,7 +180,7 @@ export const useGameLoop = ({
     onCoinCollected,
   ]);
 
-  // Collectible collision detection - WRC and score are separate
+  // Collectible collision detection - WRC and score are COMPLETELY separate
   useEffect(() => {
     if (gamePaused) return;
     
@@ -193,7 +192,7 @@ export const useGameLoop = ({
         )
       ) {
         if (collectible.type === "coin") {
-          // Coins give WRC only, not score points
+          // Coins give WRC ONLY, not score points
           setCoinsCollected(prev => prev + 1);
           // Earn 1 WRC per coin
           if (onCoinCollected) {

@@ -122,7 +122,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     } else {
       showError(result.message);
     }
-  }, [wrcSystem, activateShield]);
+  }, [wrcSystem, activateShield, gameState]);
 
   const handleUseSword = useCallback(() => {
     const result = wrcSystem.useSword();
@@ -133,7 +133,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     } else {
       showError(result.message);
     }
-  }, [wrcSystem, activateSword]);
+  }, [wrcSystem, activateSword, gameState]);
 
   // Keyboard controls for items - only work if items are owned
   useEffect(() => {
@@ -301,8 +301,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         />
         
         <ItemControls
-          shield={wrcSystem.shield}
-          sword={wrcSystem.sword}
+          shieldAvailable={wrcSystem.shieldAvailable}
+          swordUses={wrcSystem.swordUses}
           onUseShield={handleUseShield}
           onUseSword={handleUseSword}
           isMobile={isMobile}
@@ -372,7 +372,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         
         {gameState.showShop && (
           <ShopDialog
-            wrcBalance={wrcSystem.wrc}
+            wrc={wrcSystem.wrc}
             onBuyShield={wrcSystem.buyShield}
             onBuySword={wrcSystem.buySword}
             onClose={() => {

@@ -3,13 +3,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface ShopDialogProps {
-  wrcBalance: number;
+  wrc: number;
   onBuyShield: () => Promise<{ success: boolean; message: string }>;
   onBuySword: () => Promise<{ success: boolean; message: string }>;
   onClose: () => void;
 }
 
-export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: ShopDialogProps) => {
+export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose }: ShopDialogProps) => {
   const [message, setMessage] = useState("");
 
   const handleBuyShield = async () => {
@@ -36,7 +36,7 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
         <div className="mb-4 text-center">
           <div className="flex items-center justify-center gap-2 text-lg font-bold">
             <span className="text-2xl">💰</span>
-            <span>{wrcBalance} WRC</span>
+            <span>{wrc} WRC</span>
           </div>
         </div>
         
@@ -46,18 +46,18 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
               <span className="text-3xl">🛡️</span>
               <div>
                 <div className="font-bold">Shield</div>
-                <div className="text-sm text-gray-600">Blocks one obstacle</div>
+                <div className="text-sm text-gray-600">Protects from 1 hit</div>
               </div>
             </div>
             <div className="text-right">
               <div className="font-bold">50 WRC</div>
               <Button 
                 onClick={handleBuyShield}
-                disabled={wrcBalance < 50}
+                disabled={wrc < 50}
                 size="sm"
-                className={wrcBalance < 50 ? "bg-gray-400 cursor-not-allowed" : ""}
+                className={wrc < 50 ? "bg-gray-400 cursor-not-allowed" : ""}
               >
-                {wrcBalance < 50 ? "Not enough WRC" : "Buy"}
+                {wrc < 50 ? "Not enough WRC" : "Buy"}
               </Button>
             </div>
           </div>
@@ -67,18 +67,18 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
               <span className="text-3xl">⚔️</span>
               <div>
                 <div className="font-bold">Sword</div>
-                <div className="text-sm text-gray-600">Destroys 3 obstacles</div>
+                <div className="text-sm text-gray-600">Kills 3 enemies</div>
               </div>
             </div>
             <div className="text-right">
               <div className="font-bold">100 WRC</div>
               <Button 
                 onClick={handleBuySword}
-                disabled={wrcBalance < 100}
+                disabled={wrc < 100}
                 size="sm"
-                className={wrcBalance < 100 ? "bg-gray-400 cursor-not-allowed" : ""}
+                className={wrc < 100 ? "bg-gray-400 cursor-not-allowed" : ""}
               >
-                {wrcBalance < 100 ? "Not enough WRC" : "Buy"}
+                {wrc < 100 ? "Not enough WRC" : "Buy"}
               </Button>
             </div>
           </div>
