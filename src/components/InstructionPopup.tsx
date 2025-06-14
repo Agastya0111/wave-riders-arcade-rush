@@ -19,11 +19,17 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
         <CardContent className="space-y-4">
           <div className="text-lg text-gray-700 mb-2">How to Play:</div>
           <ul className="list-disc list-inside text-gray-600 text-base space-y-2 mb-3">
-            <li>🏄‍♂️ Move up/down to dodge obstacles and collect coins.</li>
-            <li>✨ Collect special items for surprises: shields, swords, starfish, and magnets!</li>
-            <li>⚡ Use item buttons (or key shortcuts) to spend WRC and activate powers.</li>
-            <li>🚩 Complete daily tasks for bonus rewards.</li>
+            <li>🏄‍♂️ Use <strong>Arrow Keys</strong> to move & <strong>Spacebar</strong> for a speed boost.</li>
+            <li>💰 Collect coins to earn WRC credits.</li>
+            <li>🚩 Complete challenges for bonus rewards.</li>
             <li>🌟 Reach new levels to unlock new vehicles and boss battles.</li>
+          </ul>
+          <div className="text-lg text-gray-700 mb-2">Items & Shortcuts:</div>
+           <ul className="list-disc list-inside text-gray-600 text-base space-y-2 mb-3">
+            <li>🛡️ <strong>Shield (Ctrl+S):</strong> Costs WRC. Destroys one obstacle.</li>
+            <li>⚔️ <strong>Sword (Ctrl+Shift+S):</strong> Costs WRC. Destroys three obstacles.</li>
+            <li>⭐ <strong>Starfish (Collectible):</strong> Grants temporary invincibility.</li>
+            <li>🧲 <strong>Magnet (Collectible):</strong> Automatically collects nearby coins.</li>
           </ul>
           <div className="text-gray-500 text-xs">
             This guide helps you get started! For more tips, check the Help section in the main menu.
