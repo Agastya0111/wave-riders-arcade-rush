@@ -64,7 +64,6 @@ export const useGameLoop = ({
     const gameLoop = setInterval(() => {
       const currentTime = Date.now();
 
-      // Update obstacles
       setObstacles(prev => {
         const updated = prev
           .map(obstacle => {
@@ -94,14 +93,14 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Enhanced obstacle spawning for levels 1-4 
+        // --- KEY LOGIC: For levels 1-4, always spawn an obstacle before the danger zone every 5 seconds if none present
         let shouldSpawn = false;
         if (level <= 4) {
           const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const minSpawnInterval = 5000; // 5 seconds minimum
+          const minSpawnInterval = 5000;
           const hasNoObstacles = updated.length === 0;
-          
-          // Only spawn if 5+ seconds have passed AND no obstacles are present
+
+          // Always force a spawn if there are no obstacles and 5+ seconds passed
           if (timeSinceLastSpawn >= minSpawnInterval && hasNoObstacles) {
             shouldSpawn = true;
             setLastObstacleSpawn(currentTime);

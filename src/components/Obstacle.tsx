@@ -1,4 +1,3 @@
-
 import { ObstacleType } from "./Game";
 
 interface ObstacleProps {
@@ -39,24 +38,65 @@ const obstacleShadows = {
 };
 
 export const Obstacle = ({ obstacle }: ObstacleProps) => {
-  let rotationAngle = obstacle.type === "rock" 
-    ? Math.sin(Date.now() * 0.002) * 5 
+  // Enhanced: “real” rock look
+  const isRock = obstacle.type === "rock";
+  let rotationAngle = isRock
+    ? Math.sin(Date.now() * 0.003) * 6
     : Math.sin(Date.now() * 0.005) * 10;
 
-  // Enhanced animation for jumping whales
   let scaleTransform = "scale(1)";
   if (obstacle.type === "whale" && obstacle.jumping) {
     scaleTransform = "scale(1.2)";
     rotationAngle += Math.sin(Date.now() * 0.01) * 20;
   }
 
-  // Special rotation for whirlpool
   if (obstacle.type === "whirlpool") {
     rotationAngle = (Date.now() * 0.01) % 360;
   }
 
-  // Show warning ripples for obstacles with warning enabled (levels 1-4)
   const showWarning = obstacle.warning && obstacle.x > 800;
+
+  if (isRock) {
+    // Rock with more realistic style: shadow, texture, speckles
+    return (
+      <div
+        className="absolute rounded-xl border-2 border-neutral-800/30 flex items-center justify-center"
+        style={{
+          left: obstacle.x,
+          top: obstacle.y,
+          width: 84,
+          height: 62,
+          transform: `rotate(${rotationAngle}deg) scale(1.06)`,
+        }}
+      >
+        {/* Rock shape with gradient and little crags */}
+        <span
+          className="absolute left-0 top-0 w-full h-full rounded-[30%] shadow-2xl border border-gray-600/30"
+          style={{
+            background:
+              "radial-gradient(ellipse farthest-corner at 55% 40%, #c2c2bd 60%, #989287 100%)",
+            boxShadow:
+              "0 6px 24px #756d5c66, 0 1px 0 #ede6d799",
+          }}
+        ></span>
+        {/* Texture speckles */}
+        <span className="absolute left-8 top-6 w-2 h-2 bg-gray-400/70 rounded-full opacity-60"></span>
+        <span className="absolute left-12 top-12 w-1.5 h-1.5 bg-gray-600/70 rounded-full opacity-55"></span>
+        <span className="absolute left-7 top-17 w-2.5 h-1.5 bg-gray-500/50 rounded-full rotate-12"></span>
+        {/* Rock emoji overlay for fallback */}
+        <span className="absolute inset-0 flex items-center justify-center text-4xl opacity-80 pointer-events-none">🪨</span>
+        {/* Underwater shadow */}
+        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-black/30 opacity-50 rounded-full blur-sm z-0" />
+        {showWarning && (
+          <>
+            <div className="absolute -left-16 top-1/2 transform -translate-y-1/2 w-4 h-4 border-2 border-yellow-400/60 rounded-full animate-ping" />
+            <div className="absolute -left-24 top-1/2 transform -translate-y-1/2 w-6 h-6 border-2 border-yellow-300/40 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
+            <div className="absolute -left-32 top-1/2 transform -translate-y-1/2 w-8 h-8 border-2 border-yellow-200/20 rounded-full animate-ping" style={{ animationDelay: '0.4s' }} />
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
