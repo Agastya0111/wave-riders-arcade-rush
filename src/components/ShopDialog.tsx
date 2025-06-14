@@ -7,9 +7,11 @@ interface ShopDialogProps {
   onBuyShield: () => Promise<{ success: boolean; message: string }>;
   onBuySword: () => Promise<{ success: boolean; message: string }>;
   onClose: () => void;
+  shieldAvailable: boolean; // Added
+  swordUses: number; // Added
 }
 
-export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose }: ShopDialogProps) => {
+export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose, shieldAvailable, swordUses }: ShopDialogProps) => {
   const [message, setMessage] = useState("");
 
   const handleBuyShield = async () => {
@@ -46,18 +48,18 @@ export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose }: ShopDialog
               <span className="text-3xl">🛡️</span>
               <div>
                 <div className="font-bold">Shield</div>
-                <div className="text-sm text-gray-600">Protects from 1 hit</div>
+                <div className="text-sm text-gray-600">Protects from 1 hit {shieldAvailable && "(Owned)"}</div>
               </div>
             </div>
             <div className="text-right">
               <div className="font-bold">50 WRC</div>
               <Button 
                 onClick={handleBuyShield}
-                disabled={wrc < 50}
+                disabled={wrc < 50 || shieldAvailable}
                 size="sm"
-                className={wrc < 50 ? "bg-gray-400 cursor-not-allowed" : ""}
+                className={(wrc < 50 || shieldAvailable) ? "bg-gray-400 cursor-not-allowed" : ""}
               >
-                {wrc < 50 ? "Not enough WRC" : "Buy"}
+                {shieldAvailable ? "Owned" : wrc < 50 ? "Not enough WRC" : "Buy"}
               </Button>
             </div>
           </div>
@@ -67,7 +69,7 @@ export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose }: ShopDialog
               <span className="text-3xl">⚔️</span>
               <div>
                 <div className="font-bold">Sword</div>
-                <div className="text-sm text-gray-600">Kills 3 enemies</div>
+                <div className="text-sm text-gray-600">Kills 3 enemies ({swordUses} uses left)</div>
               </div>
             </div>
             <div className="text-right">
@@ -103,3 +105,4 @@ export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose }: ShopDialog
     </div>
   );
 };
+

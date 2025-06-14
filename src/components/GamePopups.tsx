@@ -29,7 +29,7 @@ export const GamePopups = ({
     <>
       {gameState.showStoryPopup && (
         <StoryPopup
-          onClose={() => {
+          onContinue={() => { // Changed from onClose to onContinue
             gameState.setShowStoryPopup(false);
             gameState.setStoryShown(true);
           }}
@@ -52,7 +52,7 @@ export const GamePopups = ({
       {/* Removed WCRPopup rendering */}
       {(localShowShop || gameState.showShop) && (
         <ShopDialog
-          wrc={wrcSystem.wrc} // Changed wrcBalance to wrc
+          wrc={wrcSystem.wrc}
           onClose={() => {
             setLocalShowShop(false);
             gameState.setShowShop(false);
@@ -64,9 +64,19 @@ export const GamePopups = ({
         />
       )}
       {gameState.showSignupPrompt && (
-        <SignupPrompt onClose={() => gameState.setShowSignupPrompt(false)} />
+        <SignupPrompt
+          onSignup={() => {
+            // Placeholder for actual signup logic if needed, e.g., redirect or open modal
+            console.log("Signup initiated from GamePopups");
+            gameState.setShowSignupPrompt(false);
+          }}
+          onContinue={() => {
+            gameState.setShowSignupPrompt(false);
+          }}
+        />
       )}
-      {replayOverlayVisible && <ReplayOverlay visible={replayOverlayVisible} onReplay={onReplay} />} {/* Added visible prop */}
+      {replayOverlayVisible && <ReplayOverlay visible={replayOverlayVisible} onReplay={onReplay} />}
     </>
   );
 };
+
