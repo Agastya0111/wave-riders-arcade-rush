@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaderboard } from "./Leaderboard";
 import { GameStats } from "./GameStats";
 import { UserStats } from "./UserStats";
+import { TeamsPage } from "./TeamsPage"; // Import TeamsPage
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Play, Trophy, BarChart3, User } from "lucide-react";
+import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react"; // Added TeamsIcon
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -13,11 +14,12 @@ interface MainMenuProps {
 }
 
 export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
-  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats' | 'userStats'>('menu');
-  const { signOut } = useAuth();
+  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats' | 'userStats' | 'teams'>('menu'); // Added 'teams'
+  const { signOut, user } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
+    setCurrentView('menu'); // Ensure view resets if sign out happens from a sub-page
   };
 
   if (currentView === 'leaderboard') {
@@ -70,6 +72,23 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
       </div>
     );
   }
+  
+  if (currentView === 'teams') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-400 via-purple-500 to-purple-800 flex flex-col items-center justify-start p-4 pt-10">
+        <div className="w-full max-w-2xl space-y-4">
+          <TeamsPage />
+          <Button 
+            onClick={() => setCurrentView('menu')}
+            variant="outline"
+            className="w-full bg-white/90 mt-6"
+          >
+            Back to Main Menu
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
@@ -87,7 +106,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3"> {/* Reduced space-y for more buttons */}
           <Button 
             onClick={onStartGame}
             className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
@@ -114,16 +133,29 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
             Game Stats
           </Button>
           
-          <Button 
-            onClick={() => setCurrentView('userStats')}
-            variant="outline"
-            className="w-full"
-          >
-            <User className="w-5 h-5 mr-2" />
-            My Stats
-          </Button>
+          {!isGuest && user && ( // Only show My Stats and Teams if logged in
+            <>
+              <Button 
+                onClick={() => setCurrentView('userStats')}
+                variant="outline"
+                className="w-full"
+              >
+                <User className="w-5 h-5 mr-2" />
+                My Stats
+              </Button>
+              
+              <Button 
+                onClick={() => setCurrentView('teams')}
+                variant="outline"
+                className="w-full"
+              >
+                <TeamsIcon className="w-5 h-5 mr-2" />
+                Teams
+              </Button>
+            </>
+          )}
           
-          {!isGuest && (
+          {!isGuest && user && (
             <Button 
               onClick={handleSignOut}
               variant="outline"
