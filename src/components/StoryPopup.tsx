@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEffect } from "react";
 
 interface StoryPopupProps {
-  onContinue: () => void;
+  onContinue: () => void; // Expects onContinue
 }
 
 export const StoryPopup = ({ onContinue }: StoryPopupProps) => {
@@ -45,3 +45,4 @@ export const StoryPopup = ({ onContinue }: StoryPopupProps) => {
     </div>
   );
 };
+

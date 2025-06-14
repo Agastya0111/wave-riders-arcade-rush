@@ -7,8 +7,8 @@ interface ShopDialogProps {
   onBuyShield: () => Promise<{ success: boolean; message: string }>;
   onBuySword: () => Promise<{ success: boolean; message: string }>;
   onClose: () => void;
-  shieldAvailable: boolean; // Added
-  swordUses: number; // Added
+  shieldAvailable: boolean; // Ensure this is defined
+  swordUses: number;       // Ensure this is defined
 }
 
 export const ShopDialog = ({ wrc, onBuyShield, onBuySword, onClose, shieldAvailable, swordUses }: ShopDialogProps) => {

@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SignupPromptProps {
-  onSignup: () => void;
-  onContinue: () => void;
+  onSignup: () => void;   // Expects onSignup
+  onContinue: () => void; // Expects onContinue
 }
 
 export const SignupPrompt = ({ onSignup, onContinue }: SignupPromptProps) => {
@@ -39,3 +39,4 @@ export const SignupPrompt = ({ onSignup, onContinue }: SignupPromptProps) => {
     </div>
   );
 };
+

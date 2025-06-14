@@ -4,7 +4,6 @@ import { MilestonePopup } from "./MilestonePopup";
 import { ShopDialog } from "./ShopDialog";
 import { SignupPrompt } from "./SignupPrompt";
 import { ReplayOverlay } from "./ReplayOverlay";
-// Removed WCRPopup import
 import type { GameStateHook } from "@/hooks/useGameState";
 import type { WRCSystemHook } from "@/hooks/useWRCSystem";
 
@@ -29,7 +28,7 @@ export const GamePopups = ({
     <>
       {gameState.showStoryPopup && (
         <StoryPopup
-          onContinue={() => { // Changed from onClose to onContinue
+          onContinue={() => { // Pass onContinue
             gameState.setShowStoryPopup(false);
             gameState.setStoryShown(true);
           }}
@@ -41,15 +40,13 @@ export const GamePopups = ({
           onResume={() => gameState.setShowMilestonePopup(false)}
           onOpenShop={() => {
             gameState.setShowMilestonePopup(false);
-            gameState.setShowShop(true); // Show main shop dialog
+            gameState.setShowShop(true);
           }}
           onContinueAfterReward={() => {
-            // Logic for item grant would go here, then close
             gameState.setShowMilestonePopup(false);
           }}
         />
       )}
-      {/* Removed WCRPopup rendering */}
       {(localShowShop || gameState.showShop) && (
         <ShopDialog
           wrc={wrcSystem.wrc}
@@ -59,18 +56,17 @@ export const GamePopups = ({
           }}
           onBuyShield={wrcSystem.buyShield}
           onBuySword={wrcSystem.buySword}
-          shieldAvailable={wrcSystem.shieldAvailable}
-          swordUses={wrcSystem.swordUses}
+          shieldAvailable={wrcSystem.shieldAvailable} // Pass shieldAvailable
+          swordUses={wrcSystem.swordUses}             // Pass swordUses
         />
       )}
       {gameState.showSignupPrompt && (
         <SignupPrompt
-          onSignup={() => {
-            // Placeholder for actual signup logic if needed, e.g., redirect or open modal
+          onSignup={() => { // Pass onSignup
             console.log("Signup initiated from GamePopups");
             gameState.setShowSignupPrompt(false);
           }}
-          onContinue={() => {
+          onContinue={() => { // Pass onContinue
             gameState.setShowSignupPrompt(false);
           }}
         />
