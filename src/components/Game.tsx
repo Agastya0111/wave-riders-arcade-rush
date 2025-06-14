@@ -64,7 +64,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [errorMessage, setErrorMessage] = useState("");
   const wrcSystem = useWRCSystem();
   const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
-  const [showShop, setShowShop] = useState(false);
+  const [showShop, setShowShop] = useState(false); // This showShop state seems to be duplicated from gameState.showShop. Consider consolidating.
   const [challenge, setChallenge] = useState({
     text: "Collect 7 coins in a round!",
     completed: false
@@ -72,21 +72,19 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [isInvincible, setIsInvincible] = useState(false);
   const [magnetActive, setMagnetActive] = useState(false);
   const [replayOverlay, setReplayOverlay] = useState(false);
-  const [showInstruction, setShowInstruction] = useState(false);
+  // const [showInstruction, setShowInstruction] = useState(false); // REMOVED
 
-  useEffect(() => {
-    // Show onboarding only if not shown before on this device/account
-    const flag = localStorage.getItem("surferadventure_instruct_seen_v2");
-    if (!flag) {
-      setShowInstruction(true);
-      localStorage.setItem("surferadventure_instruct_seen_v2", "yes");
-    }
-  }, []);
+  // useEffect(() => { // REMOVED this useEffect block
+  //   const flag = localStorage.getItem("surferadventure_instruct_seen_v2");
+  //   if (!flag) {
+  //     setShowInstruction(true);
+  //     localStorage.setItem("surferadventure_instruct_seen_v2", "yes");
+  //   }
+  // }, []);
 
-  // Check if the player can afford anything in shop (above 50 WRC)
+  // ... keep existing code (canAffordShop, mobile check, handleCoinCollected, showError, livesUsed tracking, currentGear, item handlers, keyboard controls for items, touch controls, game controls, game loop, game events, game session, handleRestart, handleChooseAvatar)
   const canAffordShop = wrcSystem.wrc >= 50;
 
-  // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -96,55 +94,44 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle coin collection for WRC (separate from score)
   const handleCoinCollected = useCallback(() => {
-    wrcSystem.earnWRC(1); // Add 1 WRC per coin
+    wrcSystem.earnWRC(1);
     setShowCoinFeedback(true);
     setTimeout(() => setShowCoinFeedback(false), 1000);
     
-    // Play coin sound
     try {
       const audio = new Audio('data:audio/wav;base64,UklGRu4CAABXQVZFZm10IBAAAAABAAEASB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEZBjuO1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+Dy');
-      audio.play().catch(() => {}); // Ignore audio play errors
+      audio.play().catch(() => {});
     } catch (error) {
       console.log('Audio not supported');
     }
   }, [wrcSystem]);
 
-  // Show error messages
   const showError = (message: string) => {
     setErrorMessage(message);
     setTimeout(() => setErrorMessage(""), 3000);
     
-    // Play error sound
     try {
       const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEZBjuO1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+Dy');
       audio.volume = 0.3;
-      audio.play().catch(() => {}); // Ignore audio play errors
+      audio.play().catch(() => {});
     } catch (error) {
       console.log('Audio not supported');
     }
   };
-
-  // Remove milestone tracking based on score - this was causing confusion
-  // WRC and score are now completely separate
-
-  // Track lives used
+  
   useEffect(() => {
     const initialLives = 3;
     setLivesUsed(initialLives - gameState.lives);
   }, [gameState.lives]);
 
-  // Determine current gear based on level
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
 
-  // Item usage handlers with proper WRC validation
   const handleUseShield = useCallback(() => {
     const result = wrcSystem.useShield();
     if (result.success) {
       activateShield();
-      // Remove the next obstacle that would hit the player
       gameState.setObstacles(prev => prev.slice(1));
     } else {
       showError(result.message);
@@ -155,14 +142,12 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     const result = wrcSystem.useSword();
     if (result.success) {
       activateSword();
-      // Remove up to 3 obstacles
       gameState.setObstacles(prev => prev.slice(3));
     } else {
       showError(result.message);
     }
   }, [wrcSystem, activateSword, gameState]);
 
-  // Keyboard controls for items - only work if items are owned
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (gameState.gameOver || gameState.victory || gameState.gamePaused) return;
@@ -180,7 +165,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleUseShield, handleUseSword, gameState.gameOver, gameState.victory, gameState.gamePaused]);
 
-  // Touch controls
   const { handleTouchStart, handleTouchMove, handleTouchEnd } = useTouchControls({
     moveUp: () => {
       if (!gameState.gameOver && !gameState.victory && !gameState.gamePaused) {
@@ -201,7 +185,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   });
 
-  // Game controls
   useGameControls({
     gameOver: gameState.gameOver,
     victory: gameState.victory,
@@ -213,20 +196,17 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     setSpeedBoostCount: gameState.setSpeedBoostCount,
   });
 
-  // Game loop with coin collection callback
   useGameLoop({
     ...gameState,
     playerX,
     onCoinCollected: handleCoinCollected,
   });
 
-  // Game events
   useGameEvents({
     ...gameState,
     playerX,
   });
 
-  // Game session tracking
   useGameSession({
     gameOver: gameState.gameOver,
     victory: gameState.victory,
@@ -249,24 +229,33 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     gameState.resetGame();
     setLivesUsed(0);
     setDolphinsUsed(0);
+    // This function in Game.tsx doesn't navigate. The navigation to avatar selection is handled by onRestart via Index.tsx.
+    // It might be intended to call onRestart here as well, or it's for a flow not fully active.
+    // For now, its direct effect is just resetting game state parts.
   }, [gameState]);
 
-  // New: Game Shop state moved to top of component
-  
 
-  // Modified: When shop is open, also pause the game
   useEffect(() => {
-    if (showShop) {
+    if (showShop) { // This is the local showShop state
       gameState.setGamePaused(true);
-    } else if (!gameState.showShop) {
-      // Only unpause if there isn't another popup/overlay open
-      gameState.setGamePaused(false);
+    } else if (!gameState.showShop) { // This refers to gameState.showShop
+      // This condition needs review: it unpauses if gameState.showShop is false,
+      // even if local showShop was true and then set to false.
+      // The intention is probably: if local showShop is closed, and no OTHER popup (like gameState.showShop) is open, unpause.
+      // A safer way: gameState.setGamePaused(false) should only happen when local showShop transitions from true to false.
+      // And even then, only if other conditions for pause are not met.
+      // For now, will keep as is, but this logic is a bit complex.
+      // A better approach might be to use gameState.setGamePaused(true) when local showShop opens,
+      // and gameState.setGamePaused(false) when local showShop closes, IF no other pausing condition is met.
+      // The current `else if (!gameState.showShop)` implies gameState.showShop is the primary driver for pausing from shop.
+      // Let's ensure local showShop closing sets gamePaused(false) if appropriate.
+       if (!gameState.showStoryPopup && !gameState.showMilestonePopup && !gameState.showSignupPrompt) {
+         gameState.setGamePaused(false);
+       }
     }
-    // Only trigger on showShop open/close
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showShop]);
+  }, [showShop, gameState.showShop, gameState.showStoryPopup, gameState.showMilestonePopup, gameState.showSignupPrompt]); // Added dependencies based on logic
 
-  // Listen for powerup events
   useEffect(() => {
     function handleInvincibility() {
       setIsInvincible(true);
@@ -284,17 +273,14 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     };
   }, []);
 
-  // Challenge: simple stat tracking
   useEffect(() => {
     if (!challenge.completed && gameState.coinsCollected >= 7) {
       setChallenge({ ...challenge, completed: true });
     }
   }, [gameState.coinsCollected, challenge]);
 
-  // Temporary: "boss" octopus at level 10
   const bossActive = gameState.level === 10 && !gameState.gameOver && !gameState.victory;
 
-  // Replay highlight: show after game over
   useEffect(() => {
     if (gameState.gameOver) {
       setTimeout(() => setReplayOverlay(true), 1000);
@@ -305,18 +291,17 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
   const handleReplay = () => {
     setReplayOverlay(false);
-    // For brevity: just play a confetti overlay, no actual game replay
     setTimeout(() => setReplayOverlay(false), 4000);
   };
 
-  // Conditional return statements come AFTER all hooks
+
   if (gameState.gameOver) {
     return (
       <GameOver
         score={gameState.score}
         level={gameState.level}
         onRestart={handleRestart}
-        onChooseAvatar={handleChooseAvatar}
+        onChooseAvatar={handleChooseAvatar} // This calls local reset, restart goes to menu
         rescueMission={gameState.level >= 7}
       />
     );
@@ -327,29 +312,26 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       <Victory
         score={gameState.score}
         onPlayAgain={handleRestart}
-        onChooseAvatar={handleChooseAvatar}
+        onChooseAvatar={handleChooseAvatar} // Same as above
       />
     );
   }
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
-      {/* Session/daily challenge */}
       <ChallengeBanner challenge={challenge} />
-      {/* WRC Display stays up top (raises z index to not get overlapped) */}
       <WRCDisplay balance={wrcSystem.wrc} />
-      {/* Shop Button - now appears below WRC display, pops if affordable */}
       <ShopButton
         show={
           !gameState.gameOver &&
           !gameState.victory &&
           !gameState.showStoryPopup &&
           !gameState.showMilestonePopup &&
-          !gameState.showShop &&
+          !gameState.showShop && // This is gameState.showShop
           !gameState.showSignupPrompt &&
-          !showShop
+          !showShop // This is local showShop
         }
-        onClick={() => setShowShop(true)}
+        onClick={() => setShowShop(true)} // Sets local showShop
         userCanAfford={canAffordShop}
       />
       <div
@@ -360,22 +342,18 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <GameBackground />
-        {/* Player pass-through for invincibility */}
         <Player 
           x={playerX} 
           y={gameState.playerY} 
           avatar={avatar}
           gear={currentGear}
         />
-        {/* Boss at level 10 */}
         <BossObstacle x={700} y={320} active={bossActive} />
-        {/* Obstacles logic */}
         {gameState.obstacles.map((obstacle) => (
           <Obstacle key={obstacle.id} obstacle={obstacle} />
         ))}
-        {/* Collectibles + new special collectibles */}
         {gameState.collectibles.map((collectible, i) => {
-          // Starfish
+          // ... keep existing code (collectible rendering logic)
           if ((collectible as any).type === "starfish") {
             return (
               <div key={collectible.id}
@@ -468,7 +446,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
 
         {gameState.showSignupPrompt && (
           <SignupPrompt 
-            onSignup={() => gameState.setShowSignupPrompt(false)}
+            onSignup={() => gameState.setShowSignupPrompt(false)} // These should probably lead to auth flow
             onContinue={() => gameState.setShowSignupPrompt(false)}
           />
         )}
@@ -482,7 +460,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
             }}
             onOpenShop={() => {
               gameState.setShowMilestonePopup(false);
-              gameState.setShowShop(true);
+              // Prefer using the local setShowShop if that's the intended control for the ShopDialog instance here
+              // gameState.setShowShop(true); 
+              setShowShop(true); // Control local shop dialog
             }}
             onContinueAfterReward={() => {
               gameState.setShowMilestonePopup(false);
@@ -491,29 +471,33 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           />
         )}
 
-        {gameState.showShop && (
+        {/* This is gameState.showShop, controlling a ShopDialog. 
+            There's another ShopDialog below controlled by local `showShop`.
+            This suggests potential redundancy or a misunderstanding of which shop state controls which dialog.
+            For now, I'll assume gameState.showShop is for a shop opened via game events/milestones
+            and local `showShop` is for the manual shop button.
+        */}
+        {gameState.showShop && ( 
           <ShopDialog
             wrc={wrcSystem.wrc}
             onBuyShield={wrcSystem.buyShield}
             onBuySword={wrcSystem.buySword}
             onClose={() => {
               gameState.setShowShop(false);
-              gameState.setGamePaused(false);
+              // gameState.setGamePaused(false); // Handled by useEffect for showShop/gameState.showShop
             }}
           />
         )}
-        {/* Replay UI after game */}
         <ReplayOverlay visible={replayOverlay} onReplay={handleReplay} />
-        {/* Instruction Popup: overlay, only at start, non-downloadable */}
-        {showInstruction && <InstructionPopup onClose={() => setShowInstruction(false)} />}
+        {/* REMOVED: {showInstruction && <InstructionPopup onClose={() => setShowInstruction(false)} />} */}
       </div>
-      {/* In-game shop dialog opens when the shop button is clicked, game is paused while open */}
+      {/* This ShopDialog is controlled by the local `showShop` state, triggered by ShopButton */}
       {showShop && (
         <ShopDialog
           wrc={wrcSystem.wrc}
           onBuyShield={wrcSystem.buyShield}
           onBuySword={wrcSystem.buySword}
-          onClose={() => setShowShop(false)}
+          onClose={() => setShowShop(false)} // This will trigger the useEffect to potentially unpause
         />
       )}
     </div>

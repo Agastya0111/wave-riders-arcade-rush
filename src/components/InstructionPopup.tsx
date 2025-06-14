@@ -4,12 +4,12 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface InstructionPopupProps {
-  onClose: () => void;
+  onClose: () => void; // Parent component now controls what happens on close
 }
 
 export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"> {/* Increased z-index */}
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center text-xl text-blue-700">
@@ -26,7 +26,7 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
             <li>🌟 Reach new levels to unlock new vehicles and boss battles.</li>
           </ul>
           <div className="text-gray-500 text-xs">
-            This guide appears only once per device/account. For tips, check the Help section in the menu!
+            This guide helps you get started! For more tips, check the Help section in the main menu.
           </div>
           <div className="mt-6 flex justify-center">
             <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={onClose}>
