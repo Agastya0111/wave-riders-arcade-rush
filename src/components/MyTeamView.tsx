@@ -21,7 +21,7 @@ export const MyTeamView: React.FC<MyTeamViewProps> = ({ team, members, currentUs
     <Card className="w-full max-w-lg bg-white/95 backdrop-blur">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {team.name} {isLeader && <Crown className="w-6 h-6 text-yellow-500" titleAccess="You are the leader"/>}
+          {team.name} {isLeader && <Crown className="w-6 h-6 text-yellow-500" title="You are the leader"/>}
         </CardTitle>
         <CardDescription>{team.description || "No description provided."}</CardDescription>
       </CardHeader>
@@ -34,7 +34,7 @@ export const MyTeamView: React.FC<MyTeamViewProps> = ({ team, members, currentUs
                 <User className="w-4 h-4 text-gray-600" />
                 {member.profile?.username || member.user_id.substring(0,8)}
               </span>
-              {team.leader_id === member.user_id && <Crown className="w-4 h-4 text-yellow-500" titleAccess="Leader"/>}
+              {team.leader_id === member.user_id && <Crown className="w-4 h-4 text-yellow-500" title="Leader"/>}
             </li>
           ))}
         </ul>
