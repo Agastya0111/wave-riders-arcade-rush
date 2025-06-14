@@ -18,20 +18,17 @@ const AppContent = () => {
   const [actionAfterInstructions, setActionAfterInstructions] = useState<(() => void) | null>(null);
 
   const handleInitiateGameStart = () => {
-    const instructionsSeen = localStorage.getItem("surferadventure_instruct_seen_v2") === "yes";
-    
+    // This function defines what happens after instructions are closed (or if they were skipped)
     const gameAction = () => {
       setSelectedAvatar(null); // Reset avatar before selection
       setGameState('avatarSelection');
     };
 
-    if (!instructionsSeen) {
-      // Store a function that will execute gameAction
-      setActionAfterInstructions(() => () => gameAction());
-      setShowInstructionPopupState(true);
-    } else {
-      gameAction(); // Execute directly
-    }
+    // Always set the action to take after instructions and show the popup.
+    // The localStorage check for 'surferadventure_instruct_seen_v2' is removed from here
+    // to ensure instructions appear before every game start.
+    setActionAfterInstructions(() => () => gameAction());
+    setShowInstructionPopupState(true);
   };
 
   if (loading) {
@@ -60,11 +57,12 @@ const AppContent = () => {
       <InstructionPopup 
         onClose={() => {
           setShowInstructionPopupState(false);
-          localStorage.setItem("surferadventure_instruct_seen_v2", "yes");
+          // We still set this so if behavior changes in future, it's tracked.
+          localStorage.setItem("surferadventure_instruct_seen_v2", "yes"); 
           if (actionAfterInstructions) {
             const actionToRun = actionAfterInstructions;
             setActionAfterInstructions(null); // Clear before running
-            actionToRun(); // Execute the stored action
+            actionToRun(); // Execute the stored action (which is gameAction)
           }
         }} 
       />
@@ -103,8 +101,7 @@ const AppContent = () => {
     );
   }
 
-  // Fallback to MainMenu if no other state matches, though ideally all paths are covered.
-  // This could happen if gameState is invalid or selectedAvatar is null when 'playing'.
+  // Fallback to MainMenu if no other state matches
   return <MainMenu onStartGame={handleInitiateGameStart} isGuest={!user} />;
 };
 
