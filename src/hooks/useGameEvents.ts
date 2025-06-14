@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { checkCollision } from "@/utils/gameUtils";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ interface UseGameEventsProps {
   obstacles: ObstacleType[];
   playerX: number;
   playerY: number;
+  isInvincible: boolean;
   // Removed wcrTriggered
   
   // Setters
@@ -44,6 +46,7 @@ export const useGameEvents = ({
   obstacles,
   playerX,
   playerY,
+  isInvincible,
   // Removed wcrTriggered from destructuring
   setShowStoryPopup,
   setVictory,
@@ -87,7 +90,7 @@ export const useGameEvents = ({
 
   // Collision detection
   useEffect(() => {
-    if (gamePaused) return;
+    if (gamePaused || isInvincible) return;
     obstacles.forEach(obstacle => {
       if (
         checkCollision(
@@ -105,5 +108,5 @@ export const useGameEvents = ({
         setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
       }
     });
-  }, [obstacles, playerX, playerY, gamePaused, setLives, setObstacles, setGameOver]);
+  }, [obstacles, playerX, playerY, gamePaused, isInvincible, setLives, setObstacles, setGameOver]);
 };

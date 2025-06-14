@@ -99,6 +99,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   useGameEvents({
     ...gameState,
     playerX,
+    isInvincible: gameInteractions.isInvincible,
   });
 
   useGameSession({
