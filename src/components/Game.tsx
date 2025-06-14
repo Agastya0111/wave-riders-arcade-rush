@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameOver } from "./GameOver";
 import { Victory } from "./Victory";
-import { useGameState, GameStateHook } from "@/hooks/useGameState";
+import { useGameState } from "@/hooks/useGameState"; // GameStateHook is exported directly now
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useGameControls } from "@/hooks/useGameControls";
 import { useGameEvents } from "@/hooks/useGameEvents";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTouchControls } from "@/hooks/useTouchControls";
-import { useWRCSystem, WRCSystemHook } from "@/hooks/useWRCSystem";
+import { useWRCSystem } from "@/hooks/useWRCSystem"; // WRCSystemHook is exported directly now
 import { useItemEffects } from "@/hooks/useItemEffects";
 import type { Avatar } from "@/pages/Index";
 
@@ -145,8 +145,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
       gameState.showShop ||
       gameState.showStoryPopup ||
       gameState.showMilestonePopup ||
-      gameState.showSignupPrompt ||
-      gameState.showWCRPopup
+      gameState.showSignupPrompt
     ) {
       gameState.setGamePaused(true);
     } else {
@@ -158,7 +157,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     gameState.showStoryPopup,
     gameState.showMilestonePopup,
     gameState.showSignupPrompt,
-    gameState.showWCRPopup,
     gameState.setGamePaused,
   ]);
 
@@ -176,7 +174,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     gameActions.handleRestartGame();
   };
 
-
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
   const bossActive = gameState.level === 10 && !gameState.gameOver && !gameState.victory;
@@ -186,10 +183,10 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
                          !gameState.victory &&
                          !gameState.showStoryPopup &&
                          !gameState.showMilestonePopup &&
-                         !gameState.showWCRPopup &&
                          !gameState.showShop &&
                          !gameState.showSignupPrompt &&
                          !localShowShop;
+
 
   if (gameState.gameOver) {
     return (

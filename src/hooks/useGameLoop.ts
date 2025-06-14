@@ -8,6 +8,7 @@ interface UseGameLoopProps {
   victory: boolean;
   gamePaused: boolean;
   level: number;
+  score: number; // Added score to props
   gameSpeed: number;
   speedBoost: boolean;
   playerY: number;
@@ -30,6 +31,7 @@ export const useGameLoop = ({
   victory,
   gamePaused,
   level,
+  score, // Destructure score
   gameSpeed,
   speedBoost,
   playerY,
@@ -49,16 +51,15 @@ export const useGameLoop = ({
   const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
 
-  // NEW: Checks if newY is too close vertically to existing obstacles
   const isObstacleTooClose = (newY: number, newX: number) => {
     return obstacles.some(obstacle => {
       const distance = Math.sqrt(
         Math.pow(obstacle.x - newX, 2) + Math.pow(obstacle.y - newY, 2)
       );
-      // Tweak: Slightly increase min distance for more room in easy levels
       return distance < 130;
     });
   };
+
 
   useEffect(() => {
     if (gameOver || victory || gamePaused) return;
@@ -66,8 +67,9 @@ export const useGameLoop = ({
     const gameLoop = setInterval(() => {
       const currentTime = Date.now();
 
+      // Obstacle logic: movement and spawning
       setObstacles(prev => {
-        const updated = prev
+        let updated = prev
           .map(obstacle => {
             let newX = obstacle.x - obstacle.speed;
             let newY = obstacle.y;
@@ -91,61 +93,58 @@ export const useGameLoop = ({
               newY += Math.sign(deltaY) * Math.min(Math.abs(deltaY), followSpeed);
             }
 
+
             return { ...obstacle, x: newX, y: newY };
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // --- Increased but reasonable density for levels 1-4 ---
-        let shouldSpawn = false;
-        let effectiveMinSpawnInterval = 2450; // default for lv1-4, slightly busier than before
+        // Only spawn obstacles if score is 500 or more
+        if (score >= 500) {
+          let shouldSpawn = false;
+          let effectiveMinSpawnInterval = 2450; 
 
-        if (level <= 4) {
-          // Make levels slightly busier: interval 2.15–2.45s depending on level
-          // Level 1: 2.45s, Level 2: 2.35s, Level 3: 2.25s, Level 4: 2.15s
-          effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
+          if (level <= 4) {
+            effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
+            const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
+            const hasNoObstacles = updated.length === 0;
 
-          const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-          const hasNoObstacles = updated.length === 0;
-
-          // Always force a spawn if no obstacles and min interval passed
-          if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
-            shouldSpawn = true;
-            setLastObstacleSpawn(currentTime);
-          } else if (
-            // Otherwise, random chance if last spawn interval is met
-            timeSinceLastSpawn >= effectiveMinSpawnInterval &&
-            Math.random() < 0.26 + 0.08 * level // 0.34 at level 1 to 0.58 at lv4
-          ) {
-            shouldSpawn = true;
-            setLastObstacleSpawn(currentTime);
+            if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
+              shouldSpawn = true;
+            } else if (
+              timeSinceLastSpawn >= effectiveMinSpawnInterval &&
+              Math.random() < 0.26 + 0.08 * level
+            ) {
+              shouldSpawn = true;
+            }
+          } else {
+            // Danger zone (lv5+): unchanged, hard
+            if (Math.random() < 0.020) { // Reduced original threshold from 0.05 to 0.02 for testing, revert if too sparse
+              shouldSpawn = true;
+            }
           }
-        } else {
-          // Danger zone (lv5+): unchanged, hard
-          if (Math.random() < 0.020) {
-            shouldSpawn = true;
-          }
-        }
+          
+          if (shouldSpawn) {
+            setLastObstacleSpawn(currentTime); // Set spawn time here before potential early exit
+            let attempts = 0;
+            let newObstacle;
+            do {
+              newObstacle = generateObstacle();
+              attempts++;
+            } while (
+              attempts < 7 && 
+              level <= 4 &&
+              isObstacleTooClose(newObstacle.y, newObstacle.x)
+            );
 
-        if (shouldSpawn) {
-          let attempts = 0;
-          let newObstacle;
-          do {
-            newObstacle = generateObstacle();
-            attempts++;
-          } while (
-            attempts < 7 && // try up to 7 times for better vertical safety
-            level <= 4 &&
-            isObstacleTooClose(newObstacle.y, newObstacle.x)
-          );
-
-          if (attempts < 7 || level > 4) {
-            updated.push(newObstacle);
+            if (attempts < 7 || level > 4) {
+              updated.push(newObstacle);
+            }
           }
         }
-
         return updated;
       });
 
+      // Collectible logic (spawns regardless of score)
       setCollectibles(prev => {
         let updated = prev
           .map(collectible => ({
@@ -154,17 +153,13 @@ export const useGameLoop = ({
           }))
           .filter(collectible => collectible.x > -100);
 
-        // Spawn collectibles more frequently for WRC collection
         const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
-        const spawnInterval = 1500; // More frequent spawning for coins
+        const spawnInterval = 1500; 
         
         if (timeSinceLastCollectible > spawnInterval + Math.random() * 1000) {
-          // 80%: coin, 13%: bubble, 4%: starfish, 3%: magnet.
           const rnd = Math.random();
           if (rnd < 0.8) {
-            // Coin (possible double coin)
             if (Math.random() < 0.12) {
-              // Double Coin (special "glow" coin)
               updated.push({
                 id: Math.random().toString(),
                 type: "coin",
@@ -177,7 +172,6 @@ export const useGameLoop = ({
               updated.push(generateCollectible());
             }
           } else if (rnd < 0.93) {
-            // Bubble
             updated.push({
               id: Math.random().toString(),
               type: "bubble",
@@ -186,7 +180,6 @@ export const useGameLoop = ({
               speed: gameSpeed * 0.76
             } as any);
           } else if (rnd < 0.97) {
-            // Starfish (grant invincibility)
             updated.push({
               id: Math.random().toString(),
               type: "starfish",
@@ -195,7 +188,6 @@ export const useGameLoop = ({
               speed: gameSpeed * 0.7
             } as any);
           } else {
-            // Magnet
             updated.push({
               id: Math.random().toString(),
               type: "magnet",
@@ -206,11 +198,10 @@ export const useGameLoop = ({
           }
           setLastCollectibleSpawn(currentTime);
         }
-
         return updated;
       });
 
-      setScore(prev => prev + 10); // Score increases by time, NOT by coins
+      setScore(prev => prev + 10);
     }, 16);
 
     return () => clearInterval(gameLoop);
@@ -223,21 +214,21 @@ export const useGameLoop = ({
     followMode,
     playerY,
     level,
+    score, // Added score to dependency array
     lastObstacleSpawn,
     lastCollectibleSpawn,
-    obstacles,
-    collectibles,
-    playerX,
+    gameSpeed, // Added gameSpeed as generateCollectible depends on it.
+    speedBoost, // Added speedBoost as generateObstacle depends on it.
     setObstacles,
     setCollectibles,
     setScore,
-    setCoinsCollected,
+    setCoinsCollected, // This seems to be unused in this specific useEffect, but it's a prop.
     setLastObstacleSpawn,
     setLastCollectibleSpawn,
-    onCoinCollected,
+    onCoinCollected, // This is also for the collectible collision effect.
   ]);
 
-  // Collectible collision detection - WRC and score are COMPLETELY separate
+  // Collectible collision detection
   useEffect(() => {
     if (gamePaused) return;
     
@@ -249,7 +240,6 @@ export const useGameLoop = ({
         )
       ) {
         if (collectible.type === "coin") {
-          // Normal or double?
           if ((collectible as any).double) {
             setCoinsCollected(prev => prev + 2);
             onCoinCollected && onCoinCollected();
@@ -261,8 +251,7 @@ export const useGameLoop = ({
         } else if (collectible.type === "bubble") {
           setScore(prev => prev + 50);
         } else if ((collectible as any).type === "starfish") {
-          // Invincibility, needs to be set by consuming component (Game)
-          window.dispatchEvent(new Event("powerup-invincibility")); // communicate upwards
+          window.dispatchEvent(new Event("powerup-invincibility")); 
         } else if ((collectible as any).type === "magnet") {
           window.dispatchEvent(new Event("powerup-magnet"));
         }

@@ -18,7 +18,7 @@ interface UseGameEventsProps {
   obstacles: ObstacleType[];
   playerX: number;
   playerY: number;
-  wcrTriggered: boolean; // New prop
+  // Removed wcrTriggered
   
   // Setters
   setShowStoryPopup: (value: boolean) => void;
@@ -29,8 +29,7 @@ interface UseGameEventsProps {
   setObstacles: (fn: (prev: ObstacleType[]) => ObstacleType[]) => void;
   setGameOver: (value: boolean) => void;
   setShowSignupPrompt: (value: boolean) => void;
-  setWcrTriggered: (value: boolean) => void; // New prop
-  setShowWCRPopup: (value: boolean) => void; // New prop
+  // Removed setWcrTriggered and setShowWCRPopup
 }
 
 export const useGameEvents = ({
@@ -45,7 +44,7 @@ export const useGameEvents = ({
   obstacles,
   playerX,
   playerY,
-  wcrTriggered, // Destructure new prop
+  // Removed wcrTriggered from destructuring
   setShowStoryPopup,
   setVictory,
   setLevel,
@@ -54,8 +53,7 @@ export const useGameEvents = ({
   setObstacles,
   setGameOver,
   setShowSignupPrompt,
-  setWcrTriggered, // Destructure new prop
-  setShowWCRPopup, // Destructure new prop
+  // Removed setWcrTriggered, setShowWCRPopup from destructuring
 }: UseGameEventsProps) => {
   const { user } = useAuth();
 
@@ -79,14 +77,6 @@ export const useGameEvents = ({
       setShowStoryPopup(true);
     }
   }, [level, storyShown, showStoryPopup, setShowStoryPopup]);
-
-  // WCR Popup Trigger
-  useEffect(() => {
-    if (!gameOver && !victory && score >= 500 && !wcrTriggered) {
-      setWcrTriggered(true);
-      setShowWCRPopup(true);
-    }
-  }, [score, gameOver, victory, wcrTriggered, setWcrTriggered, setShowWCRPopup]);
 
   // Victory condition
   useEffect(() => {

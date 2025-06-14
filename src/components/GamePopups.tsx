@@ -4,7 +4,7 @@ import { MilestonePopup } from "./MilestonePopup";
 import { ShopDialog } from "./ShopDialog";
 import { SignupPrompt } from "./SignupPrompt";
 import { ReplayOverlay } from "./ReplayOverlay";
-import { WCRPopup } from "./WCRPopup"; // Import the new WCRPopup
+// Removed WCRPopup import
 import type { GameStateHook } from "@/hooks/useGameState";
 import type { WRCSystemHook } from "@/hooks/useWRCSystem";
 
@@ -49,12 +49,10 @@ export const GamePopups = ({
           }}
         />
       )}
-      {gameState.showWCRPopup && ( // Add WCRPopup rendering
-        <WCRPopup onClose={() => gameState.setShowWCRPopup(false)} />
-      )}
+      {/* Removed WCRPopup rendering */}
       {(localShowShop || gameState.showShop) && (
         <ShopDialog
-          wrcBalance={wrcSystem.wrc}
+          wrc={wrcSystem.wrc} // Changed wrcBalance to wrc
           onClose={() => {
             setLocalShowShop(false);
             gameState.setShowShop(false);
@@ -68,8 +66,7 @@ export const GamePopups = ({
       {gameState.showSignupPrompt && (
         <SignupPrompt onClose={() => gameState.setShowSignupPrompt(false)} />
       )}
-      {replayOverlayVisible && <ReplayOverlay onReplay={onReplay} />}
+      {replayOverlayVisible && <ReplayOverlay visible={replayOverlayVisible} onReplay={onReplay} />} {/* Added visible prop */}
     </>
   );
 };
-
