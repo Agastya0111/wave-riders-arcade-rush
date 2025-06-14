@@ -52,6 +52,7 @@ interface GameProps {
 }
 
 export const Game = ({ avatar, onRestart }: GameProps) => {
+  // 1. Move all hooks to the top before any return
   const gameState = useGameState();
   const [playerX] = useState(100);
   const gameAreaRef = useRef<HTMLDivElement>(null);
@@ -61,10 +62,17 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [showCoinFeedback, setShowCoinFeedback] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  // WRC and shop system - completely separate from score
   const wrcSystem = useWRCSystem();
   const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
+  const [showShop, setShowShop] = useState(false);
+  const [weather, setWeather] = useState<"clear" | "rain" | "storm" | "sunset">("clear");
+  const [challenge, setChallenge] = useState({
+    text: "Collect 7 coins in a round!",
+    completed: false
+  });
+  const [isInvincible, setIsInvincible] = useState(false);
+  const [magnetActive, setMagnetActive] = useState(false);
+  const [replayOverlay, setReplayOverlay] = useState(false);
 
   // Check if the player can afford anything in shop (above 50 WRC)
   const canAffordShop = wrcSystem.wrc >= 50;
@@ -235,7 +243,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   }, [gameState]);
 
   // New: Game Shop state moved to top of component
-  const [showShop, setShowShop] = useState(false);
+  
 
   // Modified: When shop is open, also pause the game
   useEffect(() => {
@@ -249,37 +257,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showShop]);
 
-  if (gameState.gameOver) {
-    return (
-      <GameOver
-        score={gameState.score}
-        level={gameState.level}
-        onRestart={handleRestart}
-        onChooseAvatar={handleChooseAvatar}
-        rescueMission={gameState.level >= 7}
-      />
-    );
-  }
-
-  if (gameState.victory) {
-    return (
-      <Victory
-        score={gameState.score}
-        onPlayAgain={handleRestart}
-        onChooseAvatar={handleChooseAvatar}
-      />
-    );
-  }
-
   // Weather: random on mount and after each restart
-  const [weather, setWeather] = useState<"clear" | "rain" | "storm" | "sunset">("clear");
-  const [challenge, setChallenge] = useState({
-    text: "Collect 7 coins in a round!",
-    completed: false
-  });
-  const [isInvincible, setIsInvincible] = useState(false);
-  const [magnetActive, setMagnetActive] = useState(false);
-  const [replayOverlay, setReplayOverlay] = useState(false);
+  
 
   // Weather: random on mount and after each restart
   useEffect(() => {
@@ -329,6 +308,29 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     // For brevity: just play a confetti overlay, no actual game replay
     setTimeout(() => setReplayOverlay(false), 4000);
   };
+
+  // Conditional return statements come AFTER all hooks
+  if (gameState.gameOver) {
+    return (
+      <GameOver
+        score={gameState.score}
+        level={gameState.level}
+        onRestart={handleRestart}
+        onChooseAvatar={handleChooseAvatar}
+        rescueMission={gameState.level >= 7}
+      />
+    );
+  }
+
+  if (gameState.victory) {
+    return (
+      <Victory
+        score={gameState.score}
+        onPlayAgain={handleRestart}
+        onChooseAvatar={handleChooseAvatar}
+      />
+    );
+  }
 
   // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
