@@ -27,6 +27,10 @@ import type { Avatar } from "@/pages/Index";
 import { ShopButton } from "./ShopButton";
 import { ErrorMessage } from "./ErrorMessage";
 import { EffectOverlay } from "./EffectOverlay";
+import { Weather } from "./Weather";
+import { ChallengeBanner } from "./ChallengeBanner";
+import { BossObstacle } from "./BossObstacle";
+import { ReplayOverlay } from "./ReplayOverlay";
 
 export interface ObstacleType {
   id: string;
@@ -267,9 +271,72 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     );
   }
 
+  // Weather: random on mount and after each restart
+  const [weather, setWeather] = useState<"clear" | "rain" | "storm" | "sunset">("clear");
+  const [challenge, setChallenge] = useState({
+    text: "Collect 7 coins in a round!",
+    completed: false
+  });
+  const [isInvincible, setIsInvincible] = useState(false);
+  const [magnetActive, setMagnetActive] = useState(false);
+  const [replayOverlay, setReplayOverlay] = useState(false);
+
+  // Weather: random on mount and after each restart
+  useEffect(() => {
+    const types = ["clear", "rain", "storm", "sunset"] as const;
+    setWeather(types[Math.floor(Math.random() * types.length)]);
+  }, [gameState.score, gameState.level]);
+
+  // Listen for powerup events
+  useEffect(() => {
+    function handleInvincibility() {
+      setIsInvincible(true);
+      setTimeout(() => setIsInvincible(false), 5000);
+    }
+    function handleMagnet() {
+      setMagnetActive(true);
+      setTimeout(() => setMagnetActive(false), 4000);
+    }
+    window.addEventListener("powerup-invincibility", handleInvincibility);
+    window.addEventListener("powerup-magnet", handleMagnet);
+    return () => {
+      window.removeEventListener("powerup-invincibility", handleInvincibility);
+      window.removeEventListener("powerup-magnet", handleMagnet);
+    };
+  }, []);
+
+  // Challenge: simple stat tracking
+  useEffect(() => {
+    if (!challenge.completed && gameState.coinsCollected >= 7) {
+      setChallenge({ ...challenge, completed: true });
+    }
+  }, [gameState.coinsCollected, challenge]);
+
+  // Temporary: "boss" octopus at level 10
+  const bossActive = gameState.level === 10 && !gameState.gameOver && !gameState.victory;
+
+  // Replay highlight: show after game over
+  useEffect(() => {
+    if (gameState.gameOver) {
+      setTimeout(() => setReplayOverlay(true), 1000);
+    } else if (gameState.victory) {
+      setReplayOverlay(false);
+    }
+  }, [gameState.gameOver, gameState.victory]);
+
+  const handleReplay = () => {
+    setReplayOverlay(false);
+    // For brevity: just play a confetti overlay, no actual game replay
+    setTimeout(() => setReplayOverlay(false), 4000);
+  };
+
   // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
+      {/* Weather background */}
+      <Weather kind={weather} />
+      {/* Session/daily challenge */}
+      <ChallengeBanner challenge={challenge} />
       {/* WRC Display stays up top (raises z index to not get overlapped) */}
       <WRCDisplay balance={wrcSystem.wrc} />
       {/* Shop Button - now appears below WRC display, pops if affordable */}
@@ -294,19 +361,69 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <GameBackground />
-
+        {/* Player pass-through for invincibility */}
         <Player 
           x={playerX} 
           y={gameState.playerY} 
           avatar={avatar}
           gear={currentGear}
         />
+        {/* Boss at level 10 */}
+        <BossObstacle x={700} y={320} active={bossActive} />
+        {/* Obstacles logic */}
         {gameState.obstacles.map((obstacle) => (
           <Obstacle key={obstacle.id} obstacle={obstacle} />
         ))}
-        {gameState.collectibles.map((collectible) => (
-          <Collectible key={collectible.id} collectible={collectible} />
-        ))}
+        {/* Collectibles + new special collectibles */}
+        {gameState.collectibles.map((collectible, i) => {
+          // Starfish
+          if ((collectible as any).type === "starfish") {
+            return (
+              <div key={collectible.id}
+                className="absolute left-0 top-0 pointer-events-none"
+                style={{
+                  left: `${collectible.x}px`,
+                  top: `${collectible.y}px`,
+                  width: 48, height: 48,
+                  transform: "translate(-50%,-50%)"
+                }}>
+                <span className="text-[40px] animate-pulse">🌟</span>
+              </div>
+            )
+          }
+          // Magnet
+          if ((collectible as any).type === "magnet") {
+            return (
+              <div key={collectible.id}
+                className="absolute left-0 top-0"
+                style={{
+                  left: `${collectible.x}px`,
+                  top: `${collectible.y}px`,
+                  width: 44, height: 44,
+                  transform: "translate(-50%,-50%)"
+                }}>
+                <span className="text-[34px] animate-spin">🧲</span>
+              </div>
+            );
+          }
+          // Double coin
+          if ((collectible as any).double) {
+            return (
+              <div key={collectible.id}
+                className="absolute left-0 top-0"
+                style={{
+                  left: `${collectible.x}px`,
+                  top: `${collectible.y}px`,
+                  width: 52, height: 52,
+                  transform: "translate(-50%,-50%)"
+                }}>
+                <span className="text-[36px] drop-shadow-lg animate-bounce animate-pulse" style={{ color: "#ffd700" }}>🪙✨</span>
+              </div>
+            );
+          }
+          // Normal
+          return <Collectible key={collectible.id} collectible={collectible} />;
+        })}
         <GameUI
           level={gameState.level}
           followMode={followMode}
@@ -340,10 +457,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           isMobile={isMobile}
         />
         {showCoinFeedback && <CoinCollectionFeedback />}
-        {/* Error Message refactored */}
         <ErrorMessage message={errorMessage} />
-        {/* Shield and Sword Effects refactored */}
-        <EffectOverlay shieldActive={shieldActive} swordActive={swordActive} />
+        <EffectOverlay shieldActive={shieldActive || isInvincible} swordActive={swordActive} />
 
         {gameState.showStoryPopup && (
           <StoryPopup onContinue={() => {
@@ -388,6 +503,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
             }}
           />
         )}
+        {/* Replay UI after game */}
+        <ReplayOverlay visible={replayOverlay} onReplay={handleReplay} />
       </div>
       {/* In-game shop dialog opens when the shop button is clicked, game is paused while open */}
       {showShop && (

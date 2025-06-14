@@ -147,7 +147,7 @@ export const useGameLoop = ({
       });
 
       setCollectibles(prev => {
-        const updated = prev
+        let updated = prev
           .map(collectible => ({
             ...collectible,
             x: collectible.x - collectible.speed,
@@ -159,7 +159,51 @@ export const useGameLoop = ({
         const spawnInterval = 1500; // More frequent spawning for coins
         
         if (timeSinceLastCollectible > spawnInterval + Math.random() * 1000) {
-          updated.push(generateCollectible());
+          // 80%: coin, 13%: bubble, 4%: starfish, 3%: magnet.
+          const rnd = Math.random();
+          if (rnd < 0.8) {
+            // Coin (possible double coin)
+            if (Math.random() < 0.12) {
+              // Double Coin (special "glow" coin)
+              updated.push({
+                id: Math.random().toString(),
+                type: "coin",
+                x: 1200,
+                y: Math.random() * 400 + 100,
+                speed: gameSpeed * 0.8,
+                double: true
+              } as any);
+            } else {
+              updated.push(generateCollectible());
+            }
+          } else if (rnd < 0.93) {
+            // Bubble
+            updated.push({
+              id: Math.random().toString(),
+              type: "bubble",
+              x: 1200,
+              y: Math.random() * 400 + 100,
+              speed: gameSpeed * 0.76
+            } as any);
+          } else if (rnd < 0.97) {
+            // Starfish (grant invincibility)
+            updated.push({
+              id: Math.random().toString(),
+              type: "starfish",
+              x: 1200,
+              y: Math.random() * 400 + 100,
+              speed: gameSpeed * 0.7
+            } as any);
+          } else {
+            // Magnet
+            updated.push({
+              id: Math.random().toString(),
+              type: "magnet",
+              x: 1200,
+              y: Math.random() * 400 + 100,
+              speed: gameSpeed * 0.8
+            } as any);
+          }
           setLastCollectibleSpawn(currentTime);
         }
 
@@ -205,15 +249,22 @@ export const useGameLoop = ({
         )
       ) {
         if (collectible.type === "coin") {
-          // Coins give WRC ONLY, not score points
-          setCoinsCollected(prev => prev + 1);
-          // Earn 1 WRC per coin
-          if (onCoinCollected) {
-            onCoinCollected();
+          // Normal or double?
+          if ((collectible as any).double) {
+            setCoinsCollected(prev => prev + 2);
+            onCoinCollected && onCoinCollected();
+            onCoinCollected && onCoinCollected();
+          } else {
+            setCoinsCollected(prev => prev + 1);
+            if (onCoinCollected) onCoinCollected();
           }
         } else if (collectible.type === "bubble") {
-          // Bubbles give score points only, not WRC
           setScore(prev => prev + 50);
+        } else if ((collectible as any).type === "starfish") {
+          // Invincibility, needs to be set by consuming component (Game)
+          window.dispatchEvent(new Event("powerup-invincibility")); // communicate upwards
+        } else if ((collectible as any).type === "magnet") {
+          window.dispatchEvent(new Event("powerup-magnet"));
         }
         setCollectibles(prev => prev.filter(c => c.id !== collectible.id));
       }

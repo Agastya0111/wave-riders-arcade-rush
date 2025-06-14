@@ -1,58 +1,40 @@
 
-/* Wave animations for ocean background */
-@keyframes wave1 {
-  0%, 100% { transform: translateX(0) scaleY(1); }
-  50% { transform: translateX(-10px) scaleY(1.1); }
+/* Animations for confetti and weather */
+@keyframes confetti {
+  0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1;}
+  50% { opacity: 0.85; }
+  100% { transform: translateY(90px) scale(1.15) rotate(80deg); opacity: 0;}
 }
-@keyframes wave2 {
-  0%, 100% { transform: translateX(0) scaleY(1); }
-  50% { transform: translateX(15px) scaleY(0.9); }
-}
-@keyframes wave3 {
-  0%, 100% { transform: translateX(0) scaleY(1); }
-  50% { transform: translateX(-5px) scaleY(1.2); }
+.animate-confetti {
+  animation: confetti 1.1s cubic-bezier(0.6,0,0.45,1) forwards;
 }
 
-/* Caustic light animation */
-@keyframes caustics {
-  0% { 
-    transform: scale(1) rotate(0deg);
-    opacity: 0.3;
-  }
-  50% { 
-    transform: scale(1.1) rotate(180deg);
-    opacity: 0.5;
-  }
-  100% { 
-    transform: scale(1) rotate(360deg);
-    opacity: 0.3;
-  }
+@keyframes raindrop {
+  to { 
+    transform: translateY(140vh);
+    opacity: 0.4;
+   }
+}
+.animate-raindrop {
+  animation: raindrop 1.67s linear infinite;
 }
 
-/* Floating particle animations */
-@keyframes float1 {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  33% { transform: translateY(-10px) translateX(5px); }
-  66% { transform: translateY(5px) translateX(-3px); }
+@keyframes storm-flash {
+  0% { opacity: 0.20;}
+  3% { opacity: 0.80;}
+  8% { opacity: 0.05;}
+  12%{ opacity: 0.45;}
+  100% { opacity: 0.20;}
 }
-@keyframes float2 {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  50% { transform: translateY(-15px) translateX(-5px); }
-}
-@keyframes float3 {
-  0%, 100% { transform: translateY(0px) translateX(0px); }
-  25% { transform: translateY(-5px) translateX(8px); }
-  75% { transform: translateY(-12px) translateX(-2px); }
+.animate-storm-flash {
+  animation: storm-flash 2s infinite;
 }
 
-.wave1 {
-  animation: wave1 6s ease-in-out infinite;
+@keyframes boss-shake {
+  0% { transform: translate(-50%, -50%) rotate(-8deg);}
+  50% { transform: translate(-50%, -50%) rotate(8deg);}
+  100% { transform: translate(-50%, -50%) rotate(-8deg);}
 }
-
-.wave2 {
-  animation: wave2 8s ease-in-out infinite reverse;
-}
-
-.wave3 {
-  animation: wave3 4s ease-in-out infinite;
+.animate-boss-shake {
+  animation: boss-shake 1.7s ease-in-out infinite;
 }
