@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import type { ObstacleType } from "@/components/Game.d";
 import { CollectibleType, useGameLogic } from "@/hooks/useGameLogic";
@@ -103,47 +102,45 @@ export const useGameLoop = ({
           })
           .filter(obstacle => obstacle.x > -100);
 
-        // Only spawn obstacles if score is 500 or more
-        if (score >= 500) {
-          let shouldSpawn = false;
-          let effectiveMinSpawnInterval = 2450; 
+        // Obstacles can now spawn from the beginning of the game.
+        let shouldSpawn = false;
+        let effectiveMinSpawnInterval = 2450; 
 
-          if (level <= 4) {
-            effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
-            const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-            const hasNoObstacles = updated.length === 0;
+        if (level <= 4) {
+          effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
+          const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
+          const hasNoObstacles = updated.length === 0;
 
-            if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
-              shouldSpawn = true;
-            } else if (
-              timeSinceLastSpawn >= effectiveMinSpawnInterval &&
-              Math.random() < 0.26 + 0.08 * level
-            ) {
-              shouldSpawn = true;
-            }
-          } else {
-            // Danger zone (lv5+): unchanged, hard
-            if (Math.random() < 0.020) { // Reduced original threshold from 0.05 to 0.02 for testing, revert if too sparse
-              shouldSpawn = true;
-            }
+          if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
+            shouldSpawn = true;
+          } else if (
+            timeSinceLastSpawn >= effectiveMinSpawnInterval &&
+            Math.random() < 0.26 + 0.08 * level
+          ) {
+            shouldSpawn = true;
           }
-          
-          if (shouldSpawn) {
-            setLastObstacleSpawn(currentTime); // Set spawn time here before potential early exit
-            let attempts = 0;
-            let newObstacle;
-            do {
-              newObstacle = generateObstacle();
-              attempts++;
-            } while (
-              attempts < 7 && 
-              level <= 4 &&
-              isObstacleTooClose(newObstacle.y, newObstacle.x)
-            );
+        } else {
+          // Danger zone (lv5+): unchanged, hard
+          if (Math.random() < 0.020) { // Reduced original threshold from 0.05 to 0.02 for testing, revert if too sparse
+            shouldSpawn = true;
+          }
+        }
+        
+        if (shouldSpawn) {
+          setLastObstacleSpawn(currentTime); // Set spawn time here before potential early exit
+          let attempts = 0;
+          let newObstacle;
+          do {
+            newObstacle = generateObstacle();
+            attempts++;
+          } while (
+            attempts < 7 && 
+            level <= 4 &&
+            isObstacleTooClose(newObstacle.y, newObstacle.x)
+          );
 
-            if (attempts < 7 || level > 4) {
-              updated.push(newObstacle);
-            }
+          if (attempts < 7 || level > 4) {
+            updated.push(newObstacle);
           }
         }
         return updated;
