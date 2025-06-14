@@ -27,10 +27,10 @@ import type { Avatar } from "@/pages/Index";
 import { ShopButton } from "./ShopButton";
 import { ErrorMessage } from "./ErrorMessage";
 import { EffectOverlay } from "./EffectOverlay";
-import { Weather } from "./Weather";
 import { ChallengeBanner } from "./ChallengeBanner";
 import { BossObstacle } from "./BossObstacle";
 import { ReplayOverlay } from "./ReplayOverlay";
+import { InstructionPopup } from "./InstructionPopup";
 
 export interface ObstacleType {
   id: string;
@@ -65,7 +65,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const wrcSystem = useWRCSystem();
   const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
   const [showShop, setShowShop] = useState(false);
-  const [weather, setWeather] = useState<"clear" | "rain" | "storm" | "sunset">("clear");
   const [challenge, setChallenge] = useState({
     text: "Collect 7 coins in a round!",
     completed: false
@@ -73,6 +72,16 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [isInvincible, setIsInvincible] = useState(false);
   const [magnetActive, setMagnetActive] = useState(false);
   const [replayOverlay, setReplayOverlay] = useState(false);
+  const [showInstruction, setShowInstruction] = useState(false);
+
+  useEffect(() => {
+    // Show onboarding only if not shown before on this device/account
+    const flag = localStorage.getItem("surferadventure_instruct_seen_v2");
+    if (!flag) {
+      setShowInstruction(true);
+      localStorage.setItem("surferadventure_instruct_seen_v2", "yes");
+    }
+  }, []);
 
   // Check if the player can afford anything in shop (above 50 WRC)
   const canAffordShop = wrcSystem.wrc >= 50;
@@ -257,15 +266,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showShop]);
 
-  // Weather: random on mount and after each restart
-  
-
-  // Weather: random on mount and after each restart
-  useEffect(() => {
-    const types = ["clear", "rain", "storm", "sunset"] as const;
-    setWeather(types[Math.floor(Math.random() * types.length)]);
-  }, [gameState.score, gameState.level]);
-
   // Listen for powerup events
   useEffect(() => {
     function handleInvincibility() {
@@ -335,8 +335,6 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   // Refactored: now uses ShopButton, ErrorMessage, and EffectOverlay components
   return (
     <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-blue-200 to-blue-800">
-      {/* Weather background */}
-      <Weather kind={weather} />
       {/* Session/daily challenge */}
       <ChallengeBanner challenge={challenge} />
       {/* WRC Display stays up top (raises z index to not get overlapped) */}
@@ -507,6 +505,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         )}
         {/* Replay UI after game */}
         <ReplayOverlay visible={replayOverlay} onReplay={handleReplay} />
+        {/* Instruction Popup: overlay, only at start, non-downloadable */}
+        {showInstruction && <InstructionPopup onClose={() => setShowInstruction(false)} />}
       </div>
       {/* In-game shop dialog opens when the shop button is clicked, game is paused while open */}
       {showShop && (
