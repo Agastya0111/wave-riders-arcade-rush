@@ -1,0 +1,48 @@
+
+/* Typography and UI element sizing for mobile devices */
+@media (max-width: 768px) {
+  .absolute.top-4.left-4 {
+    top: 2vh;
+    left: 2vw;
+    font-size: 3vw;
+    max-font-size: 1rem;
+  }
+  .absolute.top-4.right-4 {
+    top: 2vh;
+    right: 2vw;
+    font-size: 3vw;
+    max-font-size: 1rem;
+    z-index: 55;
+  }
+  .lives-container {
+    font-size: 4vw;
+  }
+  .score-container {
+    font-size: 3.5vw;
+  }
+  .game-instructions {
+    font-size: 2.5vw;
+    padding: 1vh 2vw;
+  }
+}
+@media (max-width: 480px) and (orientation: portrait) {
+  .text-lg {
+    font-size: 4vw;
+  }
+  .text-2xl {
+    font-size: 6vw;
+  }
+  body {
+    overflow-x: hidden;
+  }
+}
+@media (max-width: 320px) {
+  .absolute.top-4.left-4,
+  .absolute.top-4.right-4 {
+    font-size: 3vw;
+    padding: 1vh 1vw;
+  }
+  .text-xs {
+    font-size: 2.5vw;
+  }
+}

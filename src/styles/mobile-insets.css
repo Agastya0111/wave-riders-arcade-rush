@@ -1,0 +1,35 @@
+
+/* Safe area and absolute element spacing for mobile */
+@media (max-width: 768px) {
+  .shop-btn-fixed {
+    top: 76px !important;
+    right: 2vw !important;
+    z-index: 60;
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .absolute.top-4 {
+    top: 1vh;
+  }
+  .absolute.bottom-4 {
+    bottom: 1vh;
+  }
+  .absolute.top-4.left-4,
+  .absolute.top-4.right-4 {
+    font-size: 2vh;
+  }
+  .lives-container,
+  .score-container {
+    font-size: 2.5vh;
+  }
+}
+
+/* Safe area handling for notches */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .game-ui-top {
+    padding-top: max(2vh, env(safe-area-inset-top));
+  }
+  .game-ui-bottom {
+    padding-bottom: max(2vh, env(safe-area-inset-bottom));
+  }
+}
