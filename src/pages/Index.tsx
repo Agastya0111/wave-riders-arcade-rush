@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { AvatarSelection } from "@/components/AvatarSelection";
 import { Game } from "@/components/Game";
@@ -29,6 +30,11 @@ const AppContent = () => {
     // to ensure instructions appear before every game start.
     setActionAfterInstructions(() => () => gameAction());
     setShowInstructionPopupState(true);
+  };
+
+  const handleSignup = () => {
+    setGuestMode(false); // This will show the AuthPage
+    setGameState('menu'); // Reset game state
   };
 
   if (loading) {
@@ -96,7 +102,8 @@ const AppContent = () => {
         onRestart={() => {
           setSelectedAvatar(null);
           setGameState('menu'); // On restart, go to menu. Clicking "Start Game" will trigger handleInitiateGameStart.
-        }} 
+        }}
+        onSignup={handleSignup}
       />
     );
   }

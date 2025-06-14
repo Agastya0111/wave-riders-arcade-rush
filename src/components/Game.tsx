@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameOver } from "./GameOver";
 import { Victory } from "./Victory";
@@ -37,9 +36,10 @@ export type Gear = "surfboard" | "bike" | "ship";
 interface GameProps {
   avatar: Avatar;
   onRestart: () => void;
+  onSignup: () => void;
 }
 
-export const Game = ({ avatar, onRestart }: GameProps) => {
+export const Game = ({ avatar, onRestart, onSignup }: GameProps) => {
   const gameState = useGameState();
   const playerX = 100;
   const gameAreaRef = useRef<HTMLDivElement>(null);
@@ -224,8 +224,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         setLocalShowShop={setLocalShowShop}
         replayOverlayVisible={replayOverlayVisible}
         onReplay={handleReplayRequest}
+        onSignup={onSignup}
       />
     </div>
   );
 };
-

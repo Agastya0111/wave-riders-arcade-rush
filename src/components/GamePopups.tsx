@@ -1,4 +1,3 @@
-
 import { StoryPopup } from "./StoryPopup";
 import { MilestonePopup } from "./MilestonePopup";
 import { ShopDialog } from "./ShopDialog";
@@ -14,6 +13,7 @@ interface GamePopupsProps {
   setLocalShowShop: (value: boolean) => void;
   replayOverlayVisible: boolean;
   onReplay: () => void;
+  onSignup: () => void;
 }
 
 export const GamePopups = ({
@@ -23,6 +23,7 @@ export const GamePopups = ({
   setLocalShowShop,
   replayOverlayVisible,
   onReplay,
+  onSignup,
 }: GamePopupsProps) => {
   return (
     <>
@@ -62,11 +63,8 @@ export const GamePopups = ({
       )}
       {gameState.showSignupPrompt && (
         <SignupPrompt
-          onSignup={() => { // Pass onSignup
-            console.log("Signup initiated from GamePopups");
-            gameState.setShowSignupPrompt(false);
-          }}
-          onContinue={() => { // Pass onContinue
+          onSignup={onSignup}
+          onContinue={() => {
             gameState.setShowSignupPrompt(false);
           }}
         />
@@ -75,4 +73,3 @@ export const GamePopups = ({
     </>
   );
 };
-
