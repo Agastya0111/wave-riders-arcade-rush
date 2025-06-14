@@ -1,13 +1,14 @@
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameOver } from "./GameOver";
 import { Victory } from "./Victory";
-import { useGameState } from "@/hooks/useGameState"; // GameStateHook is exported directly now
+import { useGameState } from "@/hooks/useGameState";
 import { useGameLoop } from "@/hooks/useGameLoop";
 import { useGameControls } from "@/hooks/useGameControls";
 import { useGameEvents } from "@/hooks/useGameEvents";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTouchControls } from "@/hooks/useTouchControls";
-import { useWRCSystem } from "@/hooks/useWRCSystem"; // WRCSystemHook is exported directly now
+import { useWRCSystem } from "@/hooks/useWRCSystem";
 import { useItemEffects } from "@/hooks/useItemEffects";
 import type { Avatar } from "@/pages/Index";
 
@@ -16,7 +17,9 @@ import { useGameActions } from "@/hooks/useGameActions";
 import { GameRenderer } from "./GameRenderer";
 import { GameHUD } from "./GameHUD";
 import { GamePopups } from "./GamePopups";
-import { Challenge } from "./ChallengeBanner";
+import { Challenge, ChallengeBanner } from "./ChallengeBanner"; // Added ChallengeBanner import
+import { useGameDerivedState } from "@/hooks/useGameDerivedState"; // Import new hook
+import { useGameLifecycleEffects } from "@/hooks/useGameLifecycleEffects"; // Import new hook
 
 export interface ObstacleType {
   id: string;
@@ -65,7 +68,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     wrcSystem,
     itemEffects,
     onRestart,
-    setLivesUsed,
+    setLivesUsed, // Pass setLivesUsed here
     setDolphinsUsed,
     showError: gameInteractions.showError,
   });
@@ -112,81 +115,40 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [localShowShop, setLocalShowShop] = useState(false);
   const [replayOverlayVisible, setReplayOverlayVisible] = useState(false);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    const initialLives = 3;
-    setLivesUsed(initialLives - gameState.lives);
-  }, [gameState.lives]);
-
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (gameState.gameOver || gameState.victory || gameState.gamePaused) return;
-      if (e.ctrlKey && e.shiftKey && e.key === 'S') {
-        e.preventDefault();
-        gameActions.handleUseSword();
-      } else if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        gameActions.handleUseShield();
-      }
-    };
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [gameActions.handleUseShield, gameActions.handleUseSword, gameState.gameOver, gameState.victory, gameState.gamePaused]);
-  
-  useEffect(() => {
-    if (
-      localShowShop ||
-      gameState.showShop ||
-      gameState.showStoryPopup ||
-      gameState.showMilestonePopup ||
-      gameState.showSignupPrompt
-    ) {
-      gameState.setGamePaused(true);
-    } else {
-      gameState.setGamePaused(false);
-    }
-  }, [
+  // Use the new lifecycle effects hook
+  useGameLifecycleEffects({
+    gameState,
+    gameActions,
     localShowShop,
-    gameState.showShop,
-    gameState.showStoryPopup,
-    gameState.showMilestonePopup,
-    gameState.showSignupPrompt,
-    gameState.setGamePaused,
-  ]);
+    setReplayOverlayVisible,
+    setIsMobile,
+    setLivesUsed,
+    initialLives: 3, // Assuming 3 initial lives, can be prop if dynamic
+  });
 
+  // Use the new derived state hook
+  const {
+    currentGear,
+    followMode,
+    bossActive,
+    canAffordShop,
+    showShopButton,
+  } = useGameDerivedState({
+    gameState,
+    wrcSystem,
+    localShowShop,
+  });
 
-  useEffect(() => {
-    if (gameState.gameOver) {
-      setTimeout(() => setReplayOverlayVisible(true), 1000);
-    } else {
-      setReplayOverlayVisible(false);
-    }
-  }, [gameState.gameOver]);
+  // Removed useEffect blocks for mobile check, livesUsed, keyboard shortcuts, game pause, and replay overlay visibility
+  // as they are now in useGameLifecycleEffects.
+  // Removed calculations for currentGear, followMode, bossActive, canAffordShop, showShopButton
+  // as they are now in useGameDerivedState.
+
 
   const handleReplayRequest = () => {
     setReplayOverlayVisible(false);
     gameActions.handleRestartGame();
   };
-
-  const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
-  const followMode = gameState.level >= 5;
-  const bossActive = gameState.level === 10 && !gameState.gameOver && !gameState.victory;
-  const canAffordShop = wrcSystem.wrc >= 50;
-
-  const showShopButton = !gameState.gameOver &&
-                         !gameState.victory &&
-                         !gameState.showStoryPopup &&
-                         !gameState.showMilestonePopup &&
-                         !gameState.showShop &&
-                         !gameState.showSignupPrompt &&
-                         !localShowShop;
-
 
   if (gameState.gameOver) {
     return (
@@ -265,3 +227,4 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     </div>
   );
 };
+
