@@ -1,4 +1,6 @@
 
+import type { GameCollectibleType as OriginalGameCollectibleType } from "@/hooks/useGameLogic";
+
 export interface ObstacleType {
   id: string;
   type: "shark" | "whale" | "octopus" | "rock" | "jellyfish" | "whirlpool" | "crate" | "seaweed";
@@ -11,3 +13,9 @@ export interface ObstacleType {
   jumpDirection?: number;
 }
 export type Gear = "surfboard" | "bike" | "ship";
+
+export interface GameCollectibleType extends Omit<OriginalGameCollectibleType, 'type'> {
+  type: "coin" | "bubble" | "starfish" | "magnet";
+  double?: boolean;
+}
+

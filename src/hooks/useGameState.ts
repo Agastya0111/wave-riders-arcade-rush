@@ -1,12 +1,10 @@
-
 import { useState } from "react";
-import type { ObstacleType } from "@/components/Game.d";
-import { CollectibleType } from "@/hooks/useGameLogic";
+import type { ObstacleType, GameCollectibleType } from "@/components/Game.d";
 
 export const useGameState = () => {
   const [playerY, setPlayerY] = useState(300);
   const [obstacles, setObstacles] = useState<ObstacleType[]>([]);
-  const [collectibles, setCollectibles] = useState<CollectibleType[]>([]);
+  const [collectibles, setCollectibles] = useState<GameCollectibleType[]>([]);
   const [lives, setLives] = useState(3);
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
