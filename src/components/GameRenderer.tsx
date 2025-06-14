@@ -1,3 +1,4 @@
+
 import React from "react";
 import { GameBackground } from "./GameBackground";
 import { Player } from "./Player";
@@ -5,8 +6,8 @@ import { Obstacle } from "./Obstacle";
 import { Collectible } from "./Collectible";
 import { BossObstacle } from "./BossObstacle";
 import type { Avatar } from "@/pages/Index";
-import type { ObstacleType, Gear } from "./Game"; // Assuming types are still here
-import type { CollectibleType } from "@/hooks/useGameLogic"; // Or move this type
+import type { ObstacleType, Gear } from "./Game.d";
+import type { CollectibleType } from "@/hooks/useGameLogic";
 
 interface GameRendererProps {
   playerX: number;

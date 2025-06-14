@@ -1,5 +1,6 @@
+
 import { useEffect } from "react";
-import { ObstacleType } from "@/components/Game";
+import type { ObstacleType } from "@/components/Game.d";
 import { CollectibleType, useGameLogic } from "@/hooks/useGameLogic";
 import { checkCollision } from "@/utils/gameUtils";
 

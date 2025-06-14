@@ -1,6 +1,6 @@
 
 import { useCallback } from "react";
-import { ObstacleType } from "@/components/Game";
+import type { ObstacleType } from "@/components/Game.d";
 
 interface UseGameLogicProps {
   level: number;

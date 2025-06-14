@@ -4,7 +4,7 @@ import { checkCollision } from "@/utils/gameUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/pages/Index";
-import { ObstacleType } from "@/components/Game";
+import type { ObstacleType } from "@/components/Game.d";
 
 interface UseGameEventsProps {
   // State

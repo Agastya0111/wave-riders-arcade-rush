@@ -1,4 +1,3 @@
-
 import React from "react";
 import { WRCDisplay } from "./WRCDisplay";
 import { ShopButton } from "./ShopButton";
@@ -10,13 +9,13 @@ import { CoinCollectionFeedback } from "./CoinCollectionFeedback";
 import { ErrorMessage } from "./ErrorMessage";
 import { EffectOverlay } from "./EffectOverlay";
 import { ChallengeBanner, Challenge } from "./ChallengeBanner";
-import type { Gear } from "./Game"; // Assuming Gear type is here
+import type { Gear } from "@/components/Game.d";
 import { GameStateHook } from "@/hooks/useGameState";
-import { WRCSystemHook } from "@/hooks/useWRCSystem"; // Define or import this type
+import { WRCSystemHook } from "@/hooks/useWRCSystem";
 
 interface GameHUDProps {
-  gameState: GameStateHook; // Pass relevant parts of gameState
-  wrcSystem: WRCSystemHook; // Pass relevant parts of wrcSystem
+  gameState: GameStateHook;
+  wrcSystem: WRCSystemHook;
   itemEffects: { shieldActive: boolean; swordActive: boolean };
   gameInteractions: {
     isInvincible: boolean;
@@ -29,15 +28,15 @@ interface GameHUDProps {
     handleUseShield: () => void;
     handleUseSword: () => void;
   };
-  showShopButton: boolean; // Derived in Game.tsx
-  onOpenShop: () => void; // To set local showShop in Game.tsx
+  showShopButton: boolean;
+  onOpenShop: () => void;
   canAffordShop: boolean;
   isMobile: boolean;
   currentGear: Gear;
   followMode: boolean;
-  dolphinsUsed: number; // For DolphinHelper, Game.tsx manages this state
-  setDolphinsUsed: React.Dispatch<React.SetStateAction<number>>; // For DolphinHelper
-  activateSpeedBoost: () => void; // From gameControls
+  dolphinsUsed: number;
+  setDolphinsUsed: React.Dispatch<React.SetStateAction<number>>;
+  activateSpeedBoost: () => void;
 }
 
 export const GameHUD = ({
@@ -73,17 +72,16 @@ export const GameHUD = ({
         score={gameState.score}
         lives={gameState.lives}
         speedBoostCount={gameState.speedBoostCount}
-        coinsCollected={gameState.coinsCollected} // For display, WRC is separate
-        wrcBalance={wrcSystem.wrc} // For debug display in GameUI
+        coinsCollected={gameState.coinsCollected}
+        wrcBalance={wrcSystem.wrc}
       />
       <DolphinHelper
         onUse={() => setDolphinsUsed(prev => prev + 1)} 
-        // Consider moving dolphinsUsed state management into a hook if it gets complex
       />
       <TouchControls
         speedBoostCount={gameState.speedBoostCount}
         speedBoost={gameState.speedBoost}
-        onSpeedBoost={activateSpeedBoost} // Use the unified handler
+        onSpeedBoost={activateSpeedBoost}
       />
       <ItemControls
         shieldAvailable={wrcSystem.shieldAvailable}
@@ -101,4 +99,3 @@ export const GameHUD = ({
     </>
   );
 };
-

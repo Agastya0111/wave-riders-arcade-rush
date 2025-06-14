@@ -1,7 +1,7 @@
 
 import type { GameStateHook } from "@/hooks/useGameState";
 import type { WRCSystemHook } from "@/hooks/useWRCSystem";
-import type { Gear } from "@/components/Game"; // Gear is exported from Game.tsx
+import type { Gear } from "@/components/Game.d"; // Gear is exported from Game.d.ts
 
 interface UseGameDerivedStateProps {
   gameState: GameStateHook;
