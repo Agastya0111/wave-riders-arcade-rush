@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,8 +75,8 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
     <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader className="text-center">
-          <div className="text-6xl mb-4">🌊🐠</div>
-          <CardTitle className="text-3xl text-blue-600">Ocean Adventure</CardTitle>
+          <div className="text-6xl mb-4">🌊🏄</div>
+          <CardTitle className="text-3xl text-blue-600">Wave Riders</CardTitle>
           <p className="text-gray-600">Dive deep and rescue your friend!</p>
           {isGuest && (
             <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2 mt-2">

@@ -8,10 +8,10 @@ interface AvatarSelectionProps {
 }
 
 const avatars: { id: Avatar; emoji: string; name: string; color: string }[] = [
-  { id: "boy", emoji: "🏄‍♂️", name: "Surf Boy", color: "bg-blue-500" },
-  { id: "girl", emoji: "🏄‍♀️", name: "Surf Girl", color: "bg-pink-500" },
-  { id: "robot", emoji: "🤖", name: "Robo Surfer", color: "bg-purple-500" },
-  { id: "shark", emoji: "🦈", name: "Shark Suit", color: "bg-gray-500" },
+  { id: "boy", emoji: "🏄‍♂️", name: "Wave Boy", color: "bg-blue-500" },
+  { id: "girl", emoji: "🏄‍♀️", name: "Wave Girl", color: "bg-pink-500" },
+  { id: "robot", emoji: "🤖", name: "Robo Rider", color: "bg-purple-500" },
+  { id: "shark", emoji: "🦈", name: "Shark Rider", color: "bg-gray-500" },
   { id: "alien", emoji: "👽", name: "Alien Rider", color: "bg-green-500" },
 ];
 
@@ -20,10 +20,10 @@ export const AvatarSelection = ({ onSelect }: AvatarSelectionProps) => {
     <div className="min-h-screen bg-gradient-to-b from-cyan-400 via-blue-500 to-blue-600 flex items-center justify-center p-4">
       <div className="text-center">
         <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          🏄 SURF RIDER 🌊
+          🌊 WAVE RIDERS 🏄
         </h1>
         <p className="text-2xl text-white mb-8 drop-shadow">
-          Choose Your Surfing Avatar!
+          Choose Your Riding Avatar!
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-4xl">

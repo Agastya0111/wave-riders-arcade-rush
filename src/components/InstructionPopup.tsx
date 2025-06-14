@@ -13,7 +13,7 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center text-xl text-blue-700">
-            Welcome to Surfer Adventure!
+            Welcome to Wave Riders!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
