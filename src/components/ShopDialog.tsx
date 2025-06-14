@@ -35,7 +35,7 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
         
         <div className="mb-4 text-center">
           <div className="flex items-center justify-center gap-2 text-lg font-bold">
-            <span className="text-2xl">🪙</span>
+            <span className="text-2xl">💰</span>
             <span>{wrcBalance} WRC</span>
           </div>
         </div>
@@ -57,7 +57,7 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
                 size="sm"
                 className={wrcBalance < 50 ? "bg-gray-400 cursor-not-allowed" : ""}
               >
-                Buy
+                {wrcBalance < 50 ? "Not enough WRC" : "Buy"}
               </Button>
             </div>
           </div>
@@ -78,7 +78,7 @@ export const ShopDialog = ({ wrcBalance, onBuyShield, onBuySword, onClose }: Sho
                 size="sm"
                 className={wrcBalance < 100 ? "bg-gray-400 cursor-not-allowed" : ""}
               >
-                Buy
+                {wrcBalance < 100 ? "Not enough WRC" : "Buy"}
               </Button>
             </div>
           </div>

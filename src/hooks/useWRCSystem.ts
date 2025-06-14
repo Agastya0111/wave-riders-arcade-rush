@@ -14,7 +14,7 @@ export interface ShopItem {
 }
 
 export const useWRCSystem = () => {
-  const [wrcBalance, setWrcBalance] = useState(0);
+  const [wrc, setWrc] = useState(0); // WRC is completely separate from score
   const [shield, setShield] = useState<ShopItem | null>(null);
   const [sword, setSword] = useState<ShopItem | null>(null);
   const { user } = useAuth();
@@ -31,7 +31,7 @@ export const useWRCSystem = () => {
             .single();
           
           if (!error && data) {
-            setWrcBalance(data.wrc_balance || 0);
+            setWrc(data.wrc_balance || 0);
           }
         } catch (error) {
           console.error('Error loading WRC balance:', error);
@@ -40,7 +40,7 @@ export const useWRCSystem = () => {
         // Guest mode - use localStorage
         const savedBalance = localStorage.getItem('wrc_balance');
         if (savedBalance) {
-          setWrcBalance(parseInt(savedBalance, 10));
+          setWrc(parseInt(savedBalance, 10));
         }
       }
     };
@@ -64,15 +64,15 @@ export const useWRCSystem = () => {
   };
 
   const earnWRC = async (amount: number) => {
-    const newBalance = wrcBalance + amount;
-    setWrcBalance(newBalance);
+    const newBalance = wrc + amount;
+    setWrc(newBalance);
     await saveWRCBalance(newBalance);
   };
 
   const spendWRC = async (amount: number) => {
-    if (wrcBalance >= amount) {
-      const newBalance = wrcBalance - amount;
-      setWrcBalance(newBalance);
+    if (wrc >= amount) {
+      const newBalance = wrc - amount;
+      setWrc(newBalance);
       await saveWRCBalance(newBalance);
       return true;
     }
@@ -80,8 +80,8 @@ export const useWRCSystem = () => {
   };
 
   const buyShield = async () => {
-    if (wrcBalance < 50) {
-      return { success: false, message: "Not enough WRC to buy this item." };
+    if (wrc < 50) {
+      return { success: false, message: "Not enough WRC." };
     }
     
     if (await spendWRC(50)) {
@@ -100,8 +100,8 @@ export const useWRCSystem = () => {
   };
 
   const buySword = async () => {
-    if (wrcBalance < 100) {
-      return { success: false, message: "Not enough WRC to buy this item." };
+    if (wrc < 100) {
+      return { success: false, message: "Not enough WRC." };
     }
     
     if (await spendWRC(100)) {
@@ -147,29 +147,8 @@ export const useWRCSystem = () => {
     return { success: true, message: "Sword activated!" };
   };
 
-  const grantFreeItems = () => {
-    setShield({
-      id: 'shield',
-      name: 'Shield',
-      icon: '🛡️',
-      price: 0,
-      uses: 1,
-      maxUses: 1,
-      description: 'Blocks one obstacle'
-    });
-    setSword({
-      id: 'sword',
-      name: 'Sword',
-      icon: '⚔️',
-      price: 0,
-      uses: 3,
-      maxUses: 3,
-      description: 'Destroys 3 obstacles'
-    });
-  };
-
   return {
-    wrcBalance,
+    wrc, // Use 'wrc' instead of 'wrcBalance' for clarity
     shield,
     sword,
     earnWRC,
@@ -177,7 +156,6 @@ export const useWRCSystem = () => {
     buyShield,
     buySword,
     useShield,
-    useSword,
-    grantFreeItems
+    useSword
   };
 };

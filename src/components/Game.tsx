@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { GameBackground } from "./GameBackground";
 import { Player } from "./Player";
@@ -56,7 +55,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const [showCoinFeedback, setShowCoinFeedback] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // WRC and shop system
+  // WRC and shop system - completely separate from score
   const wrcSystem = useWRCSystem();
   const { shieldActive, swordActive, activateShield, activateSword } = useItemEffects();
 
@@ -70,9 +69,9 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle coin collection for WRC
+  // Handle coin collection for WRC (separate from score)
   const handleCoinCollected = useCallback(() => {
-    wrcSystem.earnWRC(1);
+    wrcSystem.earnWRC(1); // Add 1 WRC per coin
     setShowCoinFeedback(true);
     setTimeout(() => setShowCoinFeedback(false), 1000);
     
@@ -100,24 +99,8 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   };
 
-  // Milestone tracking (based on score, not WRC)
-  useEffect(() => {
-    const milestones = [50, 100, 150];
-    const newMilestone = milestones.find(m => 
-      gameState.score >= m && !gameState.milestoneReached.includes(m)
-    );
-    
-    if (newMilestone) {
-      gameState.setMilestoneReached(prev => [...prev, newMilestone]);
-      gameState.setGamePaused(true);
-      gameState.setShowMilestonePopup(true);
-      
-      // Grant free items at 150 points
-      if (newMilestone === 150) {
-        wrcSystem.grantFreeItems();
-      }
-    }
-  }, [gameState.score]);
+  // Remove milestone tracking based on score - this was causing confusion
+  // WRC and score are now completely separate
 
   // Track lives used
   useEffect(() => {
@@ -129,7 +112,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
   const currentGear: Gear = gameState.level >= 8 ? "ship" : gameState.level >= 5 ? "bike" : "surfboard";
   const followMode = gameState.level >= 5;
 
-  // Item usage handlers with proper validation
+  // Item usage handlers with proper WRC validation
   const handleUseShield = useCallback(() => {
     const result = wrcSystem.useShield();
     if (result.success) {
@@ -152,7 +135,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
     }
   }, [wrcSystem, activateSword]);
 
-  // Keyboard controls for items
+  // Keyboard controls for items - only work if items are owned
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (gameState.gameOver || gameState.victory || gameState.gamePaused) return;
@@ -298,7 +281,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           lives={gameState.lives}
           speedBoostCount={gameState.speedBoostCount}
           coinsCollected={gameState.coinsCollected}
-          wrcBalance={wrcSystem.wrcBalance}
+          wrcBalance={wrcSystem.wrc}
         />
         
         <DolphinHelper
@@ -325,7 +308,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
           isMobile={isMobile}
         />
         
-        {/* Coin collection feedback */}
+        {/* Coin collection feedback - shows +1 WRC */}
         {showCoinFeedback && <CoinCollectionFeedback />}
         
         {/* Error message display */}
@@ -389,7 +372,7 @@ export const Game = ({ avatar, onRestart }: GameProps) => {
         
         {gameState.showShop && (
           <ShopDialog
-            wrcBalance={wrcSystem.wrcBalance}
+            wrcBalance={wrcSystem.wrc}
             onBuyShield={wrcSystem.buyShield}
             onBuySword={wrcSystem.buySword}
             onClose={() => {

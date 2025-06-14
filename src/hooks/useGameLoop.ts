@@ -144,7 +144,7 @@ export const useGameLoop = ({
 
         // Spawn collectibles more frequently for WRC collection
         const timeSinceLastCollectible = currentTime - lastCollectibleSpawn;
-        const spawnInterval = level <= 4 ? 2000 : 3000; // More frequent spawning
+        const spawnInterval = 1500; // More frequent spawning for coins
         
         if (timeSinceLastCollectible > spawnInterval + Math.random() * 1000) {
           updated.push(generateCollectible());
@@ -154,7 +154,7 @@ export const useGameLoop = ({
         return updated;
       });
 
-      setScore(prev => prev + 10);
+      setScore(prev => prev + 10); // Score increases by time, not coins
     }, 16);
 
     return () => clearInterval(gameLoop);
@@ -181,7 +181,7 @@ export const useGameLoop = ({
     onCoinCollected,
   ]);
 
-  // Collectible collision detection with WRC earning
+  // Collectible collision detection - WRC and score are separate
   useEffect(() => {
     if (gamePaused) return;
     
@@ -193,14 +193,14 @@ export const useGameLoop = ({
         )
       ) {
         if (collectible.type === "coin") {
-          // Coins give WRC, not score points
+          // Coins give WRC only, not score points
           setCoinsCollected(prev => prev + 1);
           // Earn 1 WRC per coin
           if (onCoinCollected) {
             onCoinCollected();
           }
         } else if (collectible.type === "bubble") {
-          // Bubbles give score points, not WRC
+          // Bubbles give score points only, not WRC
           setScore(prev => prev + 50);
         }
         setCollectibles(prev => prev.filter(c => c.id !== collectible.id));

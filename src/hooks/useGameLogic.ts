@@ -96,8 +96,8 @@ export const useGameLogic = ({ level, gameSpeed, speedBoost }: UseGameLogicProps
   }, [gameSpeed, level, speedBoost]);
 
   const generateCollectible = useCallback((): CollectibleType => {
-    // Increase coin spawn rate - mostly coins for WRC collection
-    const coinChance = 0.8; // 80% chance for coins
+    // Prioritize coins for WRC collection - 90% chance for coins
+    const coinChance = 0.9;
     const type = Math.random() < coinChance ? "coin" : "bubble";
     
     return {

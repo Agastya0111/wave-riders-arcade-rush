@@ -26,14 +26,21 @@ export const GameUI = ({
 }: GameUIProps) => {
   return (
     <>
-      {/* Score and Level Display */}
+      {/* Score Display - Separate from WRC */}
       <div className="absolute top-4 left-4 text-white font-bold drop-shadow-lg">
         <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3 space-y-1">
           <div className="text-lg md:text-xl">Score: {score.toLocaleString()}</div>
           <div className="text-sm md:text-base">Level: {level}</div>
           <div className="text-sm md:text-base">Lives: {Array(lives).fill('❤️').join('')}</div>
-          <div className="text-sm md:text-base flex items-center gap-1">
-            🪙 {wrcBalance} WRC
+        </div>
+      </div>
+
+      {/* WRC Display - Completely Separate */}
+      <div className="absolute top-4 right-4 text-white font-bold drop-shadow-lg">
+        <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3">
+          <div className="text-lg md:text-xl flex items-center gap-2">
+            <span className="text-2xl">💰</span>
+            <span>WRC: {wrcBalance}</span>
           </div>
         </div>
       </div>
@@ -73,7 +80,7 @@ export const GameUI = ({
         </div>
       )}
 
-      {/* Follow mode indicator - now shows from level 5 */}
+      {/* Follow mode indicator */}
       {followMode && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold animate-pulse">
           DANGER MODE: Obstacles are hunting you!
