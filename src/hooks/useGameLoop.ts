@@ -135,7 +135,3 @@ export const useGameLoop = ({
     });
   }, [collectibles, playerX, playerY, gamePaused, setScore, setCoinsCollected, setCollectibles, onCoinCollected, setInvincibilityItems, setMagnetItems]);
 };
-</lov-code>
-
-I have refactored the game loop by separating the logic for obstacles and collectibles into their own manager files.
-

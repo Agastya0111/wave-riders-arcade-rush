@@ -1,12 +1,33 @@
-import { CollectibleType } from "@/hooks/useGameLogic";
+
+import type { GameCollectibleType } from "@/components/Game.d";
 
 interface CollectibleProps {
-  collectible: CollectibleType;
+  collectible: GameCollectibleType;
 }
 
 export const Collectible = ({ collectible }: CollectibleProps) => {
   // Golden look with ripple animation
   if (collectible.type === "coin") {
+    if (collectible.double) {
+      return (
+        <div
+            className="absolute z-30 flex items-center justify-center text-yellow-200 text-2xl font-bold"
+            style={{
+            left: `${collectible.x}px`,
+            top: `${collectible.y}px`,
+            width: 48,
+            height: 48,
+            transform: 'translate(-50%, -50%)',
+            background: 'radial-gradient(ellipse at 40% 30%, #ffe066 60%, #ffba08 100%)',
+            borderRadius: '50%',
+            border: '2px solid #fac710',
+            boxShadow: '0 0 8px 3px #ffd70088',
+            }}
+        >
+            2x
+        </div>
+      )
+    }
     return (
       <div
         className="absolute z-30"
@@ -48,17 +69,38 @@ export const Collectible = ({ collectible }: CollectibleProps) => {
       </div>
     );
   }
-  // Bubble collectible is unchanged
+
+  let emoji: string | null = null;
+  let className = "absolute text-2xl animate-pulse z-10";
+
+  switch (collectible.type) {
+    case 'bubble':
+      emoji = '🫧';
+      break;
+    case 'starfish':
+      emoji = '⭐';
+      className = "absolute text-3xl animate-pulse z-10"
+      break;
+    case 'magnet':
+      emoji = '🧲';
+      className = "absolute text-3xl animate-pulse z-10"
+      break;
+  }
+  
+  if (!emoji) {
+    return null;
+  }
+
   return (
     <div
-      className="absolute text-2xl animate-pulse z-10"
+      className={className}
       style={{
         left: `${collectible.x}px`,
         top: `${collectible.y}px`,
         transform: 'translate(-50%, -50%)',
       }}
     >
-      🫧
+      {emoji}
     </div>
   );
 };

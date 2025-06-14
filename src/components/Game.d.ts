@@ -1,5 +1,4 @@
-
-import type { GameCollectibleType as OriginalGameCollectibleType } from "@/hooks/useGameLogic";
+import type { CollectibleType as OriginalGameCollectibleType } from "@/hooks/useGameLogic";
 
 export interface ObstacleType {
   id: string;
@@ -18,4 +17,3 @@ export interface GameCollectibleType extends Omit<OriginalGameCollectibleType, '
   type: "coin" | "bubble" | "starfish" | "magnet";
   double?: boolean;
 }
-
