@@ -7,6 +7,16 @@ import { GameHUD } from "./GameHUD";
 import { GamePopups } from "./GamePopups";
 
 export const GameContent = () => {
+  // Add an explicit debug log for mounting
+  console.log("GameContent mounted");
+
+  const ctx = useGame();
+  // Add context null check for troubleshooting (should never be null!)
+  if (!ctx) {
+    console.error("GameContent mounted outside GameProvider (ctx === null)");
+    throw new Error("GameContent must be mounted inside a GameProvider.");
+  }
+
   const {
     gameState,
     gameActions,
@@ -29,7 +39,7 @@ export const GameContent = () => {
     onSignup,
     handleUseInvincibility,
     handleUseMagnet,
-  } = useGame();
+  } = ctx;
 
   if (gameState.gameOver) {
     return (
@@ -113,3 +123,4 @@ export const GameContent = () => {
     </div>
   );
 };
+
