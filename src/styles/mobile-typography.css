@@ -1,4 +1,3 @@
-
 /* Typography and UI element sizing for mobile devices */
 @media (max-width: 768px) {
   .absolute.top-4.left-4 {
@@ -24,7 +23,36 @@
     font-size: 2.5vw;
     padding: 1vh 2vw;
   }
+  .game-ui-top, .game-ui-bottom {
+    font-size: 3.2vw;
+  }
 }
+/* IMPROVE UI CLARITY FOR TIGHT PHONES */
+@media (max-width: 480px) and (orientation: portrait) {
+  .text-lg {
+    font-size: 4.8vw;
+  }
+  .text-2xl {
+    font-size: 7vw;
+  }
+  .absolute.top-4.left-4,
+  .absolute.top-4.right-4 {
+    font-size: 4vw;
+  }
+}
+
+@media (max-width: 375px) { 
+  .text-lg {
+    font-size: 5.5vw !important;
+  }
+  .text-2xl {
+    font-size: 8vw !important;
+  }
+  .game-ui-top, .game-ui-bottom {
+    font-size: 4vw;
+  }
+}
+
 @media (max-width: 480px) and (orientation: portrait) {
   .text-lg {
     font-size: 4vw;
