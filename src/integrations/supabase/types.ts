@@ -193,6 +193,14 @@ export type Database = {
       }
     }
     Functions: {
+      adjust_wrc_balance: {
+        Args: { p_user_id: string; p_delta: number }
+        Returns: {
+          success: boolean
+          new_balance: number
+          message: string
+        }[]
+      }
       is_user_in_team: {
         Args: { p_user_id: string }
         Returns: boolean

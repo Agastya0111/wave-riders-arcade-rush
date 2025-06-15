@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +34,7 @@ export const useWRCSystem = () => {
             setWrc(data.wrc_balance || 0);
           }
         } catch (error) {
-          console.error('Error loading WRC balance:', error);
+          console.warn('Error loading WRC balance:', error);
         }
       } else {
         // Guest mode - use localStorage
@@ -47,54 +48,71 @@ export const useWRCSystem = () => {
     loadWRCBalance();
   }, [user]);
 
-  const saveWRCBalance = async (newBalance: number) => {
+  // Use secure, atomic WRC update for authenticated users
+  const adjustWRC = async (delta: number): Promise<{ success: boolean; new_balance: number; message?: string }> => {
     if (user) {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ wrc_balance: newBalance })
-          .eq('id', user.id);
-      } catch (error) {
-        console.error('Error saving WRC balance:', error);
+      const { data, error } = await supabase.rpc('adjust_wrc_balance', { p_user_id: user.id, p_delta: delta });
+      if (error) {
+        // Only log server errors — user error will be returned from function
+        console.error('adjust_wrc_balance RPC failed:', error);
+        return { success: false, new_balance: wrc, message: "WRC operation failed. Try again later." };
       }
+      const result = data?.[0];
+      if (!result) {
+        return { success: false, new_balance: wrc, message: "Unknown error adjusting balance." };
+      }
+      if (!result.success) {
+        return { success: false, new_balance: result.new_balance ?? wrc, message: result.message };
+      }
+      setWrc(result.new_balance);
+      return { success: true, new_balance: result.new_balance, message: result.message };
     } else {
-      localStorage.setItem('wrc_balance', newBalance.toString());
+      // Guest fallback
+      const newBalance = wrc + delta;
+      if (newBalance < 0) {
+        return { success: false, new_balance: wrc, message: "Insufficient WRC." };
+      }
+      setWrc(newBalance);
+      localStorage.setItem('wrc_balance', String(newBalance));
+      return { success: true, new_balance: newBalance, message: "OK" };
     }
   };
 
   const earnWRC = async (amount: number) => {
-    const newBalance = wrc + amount;
-    setWrc(newBalance);
-    await saveWRCBalance(newBalance);
+    const res = await adjustWRC(amount);
+    return res;
   };
 
   const buyShield = async () => {
-    if (wrc >= 50) {
-      const newBalance = wrc - 50;
-      setWrc(newBalance);
-      setShieldAvailable(true);
-      await saveWRCBalance(newBalance);
-      return { success: true, message: "Shield purchased!" };
+    if (shieldAvailable) {
+      return { success: false, message: "You already own a Shield." };
     }
-    return { success: false, message: "Not enough WRC." };
+    const result = await adjustWRC(-50);
+    if (result.success) {
+      setShieldAvailable(true);
+      return { success: true, message: "Shield purchased!" };
+    } else {
+      return { success: false, message: result.message || "Not enough WRC." };
+    }
   };
 
   const buySword = async () => {
-    if (wrc >= 100) {
-      const newBalance = wrc - 100;
-      setWrc(newBalance);
-      setSwordUses(3);
-      await saveWRCBalance(newBalance);
-      return { success: true, message: "Sword purchased!" };
+    if (swordUses > 0) {
+      return { success: false, message: "You already own a Sword." };
     }
-    return { success: false, message: "Not enough WRC." };
+    const result = await adjustWRC(-100);
+    if (result.success) {
+      setSwordUses(3);
+      return { success: true, message: "Sword purchased!" };
+    } else {
+      return { success: false, message: result.message || "Not enough WRC." };
+    }
   };
 
   const useShield = () => {
     if (!shieldAvailable) {
       return { success: false, message: "You don't own this yet!" };
     }
-    
     setShieldAvailable(false);
     return { success: true, message: "Shield activated!" };
   };
@@ -103,7 +121,6 @@ export const useWRCSystem = () => {
     if (swordUses <= 0) {
       return { success: false, message: "You don't own this yet!" };
     }
-    
     setSwordUses(prev => prev - 1);
     return { success: true, message: "Sword activated!" };
   };
@@ -116,7 +133,7 @@ export const useWRCSystem = () => {
     buyShield,
     buySword,
     useShield,
-    useSword
+    useSword,
   };
 };
 
