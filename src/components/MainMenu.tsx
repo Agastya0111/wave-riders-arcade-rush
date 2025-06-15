@@ -7,7 +7,8 @@ import { UserStats } from "./UserStats";
 import { TeamsPage } from "./TeamsPage";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react";
-import { TeamInstructions } from "./TeamInstructions"; // ADD THIS LINE
+// REMOVE THIS IF PRESENT
+// import { TeamInstructions } from "./TeamInstructions";
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -94,8 +95,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
           )}
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* ADD TeamInstructions RIGHT HERE */}
-          <TeamInstructions />
+          {/* TeamInstructions REMOVED from here */}
           <Button 
             onClick={onStartGame}
             className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"

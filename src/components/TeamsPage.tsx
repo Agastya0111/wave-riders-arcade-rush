@@ -5,10 +5,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { MyTeamView } from './MyTeamView';
 import { CreateTeamForm } from './CreateTeamForm';
 import { Button } from '@/components/ui/button';
+import { TeamInstructions } from './TeamInstructions';
 
 export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void }) => {
   const { user } = useAuth();
-  // Remove allTeams and related code.
   const {
     userTeam,
     userTeamMembers,
@@ -20,9 +20,9 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   } = useTeam();
 
   const [view, setView] = useState<'create' | 'my_team'>('my_team');
+  const [showInstructions, setShowInstructions] = useState(true);
 
   useEffect(() => {
-    // Always try to fetch user's team on mount or user change
     fetchUserTeam(user || null);
   }, [fetchUserTeam, user]);
 
@@ -53,6 +53,17 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
     );
   }
 
+  // Instructions overlay
+  if (showInstructions) {
+    return (
+      <div className="flex flex-col items-center w-full">
+        <TeamInstructions actionButton={
+          <Button onClick={() => setShowInstructions(false)} className="mt-4 w-full">Got it</Button>
+        } />
+      </div>
+    );
+  }
+
   if (view === 'my_team' && userTeam) {
     return (
       <div className="space-y-6">
@@ -71,7 +82,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
     );
   }
 
-  // No team: show only create team UI, no team list.
   if (view === 'create') {
     return (
       <div className="space-y-6">
