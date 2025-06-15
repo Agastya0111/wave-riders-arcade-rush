@@ -1,12 +1,13 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Leaderboard } from "./Leaderboard";
 import { GameStats } from "./GameStats";
 import { UserStats } from "./UserStats";
-import { TeamsPage } from "./TeamsPage"; // Import TeamsPage
+import { TeamsPage } from "./TeamsPage";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react"; // Added TeamsIcon
+import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react";
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -14,26 +15,31 @@ interface MainMenuProps {
 }
 
 export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
-  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats' | 'userStats' | 'teams'>('menu'); // Added 'teams'
+  const [currentView, setCurrentView] = useState<'menu' | 'leaderboard' | 'stats' | 'userStats' | 'teams'>('menu');
   const { signOut, user } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
-    setCurrentView('menu'); // Ensure view resets if sign out happens from a sub-page
+    setCurrentView('menu');
   };
+
+  // Back to main menu button for reuse
+  const BackToMainMenuButton = () => (
+    <Button 
+      onClick={() => setCurrentView('menu')}
+      variant="outline"
+      className="w-full bg-white/90 mt-6"
+    >
+      Back to Main Menu
+    </Button>
+  );
 
   if (currentView === 'leaderboard') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <Leaderboard />
-          <Button 
-            onClick={() => setCurrentView('menu')}
-            variant="outline"
-            className="w-full bg-white/90"
-          >
-            Back to Menu
-          </Button>
+          <BackToMainMenuButton />
         </div>
       </div>
     );
@@ -44,13 +50,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
       <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <GameStats />
-          <Button 
-            onClick={() => setCurrentView('menu')}
-            variant="outline"
-            className="w-full bg-white/90"
-          >
-            Back to Menu
-          </Button>
+          <BackToMainMenuButton />
         </div>
       </div>
     );
@@ -61,13 +61,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
       <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
           <UserStats />
-          <Button 
-            onClick={() => setCurrentView('menu')}
-            variant="outline"
-            className="w-full bg-white/90"
-          >
-            Back to Menu
-          </Button>
+          <BackToMainMenuButton />
         </div>
       </div>
     );
@@ -78,13 +72,6 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
       <div className="min-h-screen bg-gradient-to-b from-purple-400 via-purple-500 to-purple-800 flex flex-col items-center justify-start p-4 pt-10">
         <div className="w-full max-w-2xl space-y-4">
           <TeamsPage onBackToMainMenu={() => setCurrentView('menu')} />
-          <Button 
-            onClick={() => setCurrentView('menu')}
-            variant="outline"
-            className="w-full bg-white/90 mt-6"
-          >
-            Back to Main Menu
-          </Button>
         </div>
       </div>
     );
@@ -106,7 +93,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-3"> {/* Reduced space-y for more buttons */}
+        <CardContent className="space-y-3">
           <Button 
             onClick={onStartGame}
             className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
@@ -133,7 +120,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
             Game Stats
           </Button>
           
-          {!isGuest && user && ( // Only show My Stats and Teams if logged in
+          {!isGuest && user && (
             <>
               <Button 
                 onClick={() => setCurrentView('userStats')}
