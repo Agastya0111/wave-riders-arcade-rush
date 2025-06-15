@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTeam } from '@/hooks/useTeam';
 import { useAuth } from '@/hooks/useAuth';
@@ -114,9 +113,20 @@ export const TeamsPage = () => {
       <div className="space-y-6">
         <TeamInstructions />
         <CreateTeamForm onTeamCreated={handleTeamCreated} />
-        <Button variant="outline" onClick={() => setView('list')} className="w-full">
-          Back to Teams List
-        </Button>
+        <div className="flex flex-col gap-2 w-full">
+          <Button variant="outline" onClick={() => setView('list')} className="w-full">
+            Back to Teams List
+          </Button>
+          {userTeam && (
+            <Button
+              variant="destructive"
+              onClick={handleLeaveTeam}
+              className="w-full"
+            >
+              Exit Team
+            </Button>
+          )}
+        </div>
       </div>
     );
   }
