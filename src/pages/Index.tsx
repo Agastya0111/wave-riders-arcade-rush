@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AvatarSelection } from "@/components/AvatarSelection";
 import { Game } from "@/components/Game";
@@ -6,30 +5,54 @@ import { AuthPage } from "@/components/AuthPage";
 import { MainMenu } from "@/components/MainMenu";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { InstructionPopup } from "@/components/InstructionPopup"; // Import InstructionPopup
+import { TouchControlGuide } from "@/components/TouchControlGuide";
 
 export type Avatar = "boy" | "girl" | "robot" | "shark" | "alien";
 
+// Utility to detect touch device (simple version)
+function isTouchDevice() {
+  if (typeof window === "undefined") return false;
+  return (
+    "ontouchstart" in window ||
+    (window.DocumentTouch && document instanceof window.DocumentTouch) ||
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 const AppContent = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [gameState, setGameState] = useState<'menu' | 'avatarSelection' | 'playing'>('menu');
+  const [gameState, setGameState<'menu' | 'avatarSelection' | 'playing'>('menu');
   const [guestMode, setGuestMode] = useState(false);
   const { user, loading } = useAuth();
 
   const [showInstructionPopupState, setShowInstructionPopupState] = useState(false);
   const [actionAfterInstructions, setActionAfterInstructions] = useState<(() => void) | null>(null);
+  const [showTouchGuide, setShowTouchGuide] = useState(false);
 
   const handleInitiateGameStart = () => {
-    // This function defines what happens after instructions are closed (or if they were skipped)
+    // On phones/tablets: show the TouchControlGuide before game instructions or avatar selection
+    if (isTouchDevice()) {
+      setShowTouchGuide(true);
+    } else {
+      // Desktop flow, straight to instructions
+      triggerInstructionFlow();
+    }
+  };
+
+  // Helper to start instruction popup after touch guide
+  const triggerInstructionFlow = () => {
     const gameAction = () => {
       setSelectedAvatar(null); // Reset avatar before selection
       setGameState('avatarSelection');
     };
-
-    // Always set the action to take after instructions and show the popup.
-    // The localStorage check for 'surferadventure_instruct_seen_v2' is removed from here
-    // to ensure instructions appear before every game start.
     setActionAfterInstructions(() => () => gameAction());
     setShowInstructionPopupState(true);
+  };
+
+  // When TouchControlGuide is closed, show instructions as usual
+  const handleCloseTouchGuide = () => {
+    setShowTouchGuide(false);
+    triggerInstructionFlow();
   };
 
   const handleSignup = () => {
@@ -57,6 +80,13 @@ const AppContent = () => {
     );
   }
 
+  // Show TouchControlGuide for mobile/tablet users, takes priority over everything except loading/auth
+  if (showTouchGuide) {
+    return (
+      <TouchControlGuide onClose={handleCloseTouchGuide} />
+    );
+  }
+
   // Instruction Popup takes precedence if active
   if (showInstructionPopupState) {
     return (
@@ -78,7 +108,7 @@ const AppContent = () => {
   if (gameState === 'menu') {
     return (
       <MainMenu 
-        onStartGame={handleInitiateGameStart} // Use the new handler
+        onStartGame={handleInitiateGameStart}
         isGuest={!user}
       />
     );
