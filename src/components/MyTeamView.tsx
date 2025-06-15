@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Team, TeamMember, useTeam } from '@/hooks/useTeam';
 import { User, Crown, LogOut, ShieldAlert } from 'lucide-react'; // ShieldAlert for potential issues
+import type { Team, TeamMember } from '@/hooks/useTeamTypes';
+import { useTeam } from '@/hooks/useTeam';
 
 interface MyTeamViewProps {
   team: Team;

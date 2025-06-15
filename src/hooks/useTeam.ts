@@ -1,24 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import type { Team, TeamMember } from './useTeamTypes';
 import { User } from '@supabase/supabase-js';
-
-export interface Team {
-  id: string;
-  name: string;
-  description: string | null;
-  leader_id: string;
-  created_at: string;
-  member_count?: number; // Optional: to be populated by a join or separate query
-  leader_username?: string; // Optional
-}
-
-export interface TeamMember {
-  team_id: string;
-  user_id: string;
-  joined_at: string;
-  profile?: { username: string }; // For displaying member names
-}
 
 export const useTeam = () => {
   const { user } = useAuth();
@@ -268,4 +252,3 @@ export const useTeam = () => {
     leaveTeam,
   };
 };
-
