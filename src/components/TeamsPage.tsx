@@ -33,13 +33,11 @@ export const TeamsPage = () => {
   }, [fetchAllTeams, fetchUserTeam, user]);
   
   useEffect(() => {
-    // If user has a team, default to 'my_team' view
-    // Otherwise, if they were on 'my_team' view and left, switch to 'list'
     if (userTeam) {
       setView('my_team');
     } else {
       if (view === 'my_team') {
-        setView('list'); // Switch to list if they were viewing their team and it disappeared (e.g., left team)
+        setView('list');
       }
     }
   }, [userTeam, view]);
@@ -47,7 +45,6 @@ export const TeamsPage = () => {
   const handleJoinTeam = async (teamId: string) => {
     const success = await joinTeam(teamId);
     if (success) {
-      // fetchUserTeam will be called by the hook, which should update userTeam and trigger view change
       alert("Successfully joined team!"); // Replace with toast
     } else {
       alert("Failed to join team. You might already be in a team or an error occurred."); // Replace with toast
@@ -58,42 +55,30 @@ export const TeamsPage = () => {
     const success = await leaveTeam();
      if (success) {
       alert("Successfully left the team."); // Replace with toast
-      setView('list'); // Switch view to list of teams
+      setView('list');
     } else {
       alert("Failed to leave team."); // Replace with toast
     }
   }
 
   const handleTeamCreated = () => {
-    // fetchUserTeam and fetchAllTeams are called within createTeam in the hook
-    // userTeam should update, leading to view changing to 'my_team'
     alert("Team created successfully!"); // Replace with toast
   };
 
-  // Teams instructions card (shown at top, on any view)
+  // "How to play as a team" instructions card (shown at top, on any view)
   const TeamInstructions = () => (
     <Card className="mb-4 bg-blue-50 border-blue-200">
       <CardHeader className="py-2 px-4 flex flex-row items-center gap-2">
         <Info className="text-blue-700" />
-        <CardTitle className="text-base text-blue-700">How Teams Work</CardTitle>
+        <CardTitle className="text-base text-blue-700">How to play as a team</CardTitle>
       </CardHeader>
       <CardContent className="py-1 px-4 text-blue-900 text-sm space-y-2">
-        <div>
-          <strong>•</strong> <span>Create a team</span> if you want to lead your own group.<br />
-          <strong>•</strong> <span>Join an existing team</span> to play together (one team at a time).<br />
-          <strong>•</strong> Only <b>team leaders</b> can delete teams or remove others.<br />
-          <strong>•</strong> To <span>leave</span>, use the <b>Leave Team</b> button. If you’re the last member, the team will be deleted.<br />
-          <strong>•</strong> <span>Team up to compete for leaderboard spots and rewards!</span>
-        </div>
-        <div className="pt-2">
-          <span className="font-bold text-blue-800">How to play as a team:</span>
-          <ul className="list-disc list-inside pl-4 text-blue-900">
-            <li>Invite your friends to join your team by sharing your team invite link.</li>
-            <li>The link can be copied using the "Copy Join Link" button from your team page.</li>
-            <li>Friends can click the link and easily find your team to join (as long as they are not in a team already).</li>
-            <li>Play together and compete for the top team spots!</li>
-          </ul>
-        </div>
+        <ul className="list-disc list-inside pl-4 text-blue-900">
+          <li>Invite your friends to join your team by sharing your team invite link.</li>
+          <li>The link can be copied using the "Copy Join Link" button from your team page.</li>
+          <li>Friends can click the link and easily find your team to join (as long as they are not in a team already).</li>
+          <li>Play together and compete for the top team spots!</li>
+        </ul>
       </CardContent>
     </Card>
   );
@@ -183,4 +168,3 @@ export const TeamsPage = () => {
     </div>
   );
 };
-
