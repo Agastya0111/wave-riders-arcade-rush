@@ -113,6 +113,30 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_types: {
+        Row: {
+          description: string
+          goal_amount: number
+          goal_type: string
+          id: string
+          name: string
+        }
+        Insert: {
+          description: string
+          goal_amount: number
+          goal_type: string
+          id?: string
+          name: string
+        }
+        Update: {
+          description?: string
+          goal_amount?: number
+          goal_type?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       team_join_links: {
         Row: {
           created_at: string
@@ -181,6 +205,87 @@ export type Database = {
           },
         ]
       }
+      team_quest_participants: {
+        Row: {
+          completed: boolean
+          id: string
+          joined_at: string
+          team_quest_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          id?: string
+          joined_at?: string
+          team_quest_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          id?: string
+          joined_at?: string
+          team_quest_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_quest_participants_team_quest_id_fkey"
+            columns: ["team_quest_id"]
+            isOneToOne: false
+            referencedRelation: "team_quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_quest_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_quests: {
+        Row: {
+          active: boolean
+          completed_at: string | null
+          id: string
+          quest_type_id: string
+          started_at: string
+          team_id: string
+        }
+        Insert: {
+          active?: boolean
+          completed_at?: string | null
+          id?: string
+          quest_type_id: string
+          started_at?: string
+          team_id: string
+        }
+        Update: {
+          active?: boolean
+          completed_at?: string | null
+          id?: string
+          quest_type_id?: string
+          started_at?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_quests_quest_type_id_fkey"
+            columns: ["quest_type_id"]
+            isOneToOne: false
+            referencedRelation: "quest_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_quests_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
@@ -207,6 +312,32 @@ export type Database = {
           {
             foreignKeyName: "teams_leader_id_fkey"
             columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_logins: {
+        Row: {
+          id: string
+          login_date: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          login_date: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          login_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_logins_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

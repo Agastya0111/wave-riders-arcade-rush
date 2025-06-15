@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { Team, TeamMember, TeamJoinLink } from './useTeamTypes';
 import { User } from '@supabase/supabase-js';
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useTeam = () => {
   const { user } = useAuth();
@@ -293,6 +294,146 @@ export const useTeam = () => {
     }
   }, [userTeam, user, fetchActiveJoinLink]);
 
+  // Add utility hook to get login streak
+  const useLoginStreak = (userId: string | null) => {
+    const [streak, setStreak] = useState(0);
+    useEffect(() => {
+      if (!userId) return setStreak(0);
+      (async () => {
+        const { data, error } = await supabase
+          .from('user_logins')
+          .select('login_date')
+          .eq('user_id', userId)
+          .order('login_date', { ascending: false });
+        if (error) return setStreak(0);
+        // Compute streak
+        let expected = new Date();
+        let count = 0;
+        for (const row of data) {
+          const dateStr = row.login_date;
+          if (!dateStr) break;
+          const d = new Date(dateStr + "T00:00:00");
+          if (d.toDateString() === expected.toDateString()) {
+            count += 1;
+            expected.setDate(expected.getDate() - 1);
+          } else if (count === 0 && d < expected && d > expected) {
+            continue;
+          } else {
+            break; // streak broken
+          }
+        }
+        setStreak(count);
+      })();
+    }, [userId]);
+    return streak;
+  };
+
+  // Util to mark today as a login
+  const useRecordLogin = (userId: string | null) => {
+    useEffect(() => {
+      if (!userId) return;
+      (async () => {
+        const today = new Date().toISOString().slice(0, 10);
+        // Only insert if today's login not present
+        const { data } = await supabase
+          .from('user_logins')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('login_date', today);
+
+        if (!data || !data.length) {
+          await supabase
+            .from('user_logins')
+            .insert({ user_id: userId, login_date: today });
+        }
+      })();
+    }, [userId]);
+  };
+
+  // Add team leaderboard (top teams by member count then quest completions)
+  const useTeamLeaderboard = () => {
+    const [teams, setTeams] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+      setLoading(true);
+      (async () => {
+        // Get top 10 teams by member count and quest completions
+        const { data, error } = await supabase.rpc('get_team_leaderboard');
+        if (data) setTeams(data);
+        setLoading(false);
+      })();
+    }, []);
+    return { teams, loading };
+  };
+
+  // Quests logic
+  const useTeamQuests = (teamId: string | null, userId: string | null) => {
+    const [activeQuest, setActiveQuest] = useState<any>(null);
+    const [questTypes, setQuestTypes] = useState<any[]>([]);
+    const [participants, setParticipants] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    // fetch active quest
+    useEffect(() => {
+      if (!teamId) return setActiveQuest(null);
+      (async () => {
+        setLoading(true);
+        const { data: quest, error } = await supabase
+          .from('team_quests')
+          .select('*, quest_types(*)')
+          .eq('team_id', teamId)
+          .eq('active', true)
+          .order('started_at', { ascending: false })
+          .maybeSingle();
+        setActiveQuest(quest);
+        setLoading(false);
+      })();
+    }, [teamId]);
+
+    // fetch available quest templates
+    useEffect(() => {
+      (async () => {
+        const { data, error } = await supabase.from('quest_types').select('*');
+        setQuestTypes(data || []);
+      })();
+    }, []);
+
+    // fetch quest participants
+    useEffect(() => {
+      if (!activeQuest) return setParticipants([]);
+      (async () => {
+        const { data, error } = await supabase
+          .from('team_quest_participants')
+          .select('*, profiles(username)')
+          .eq('team_quest_id', activeQuest.id);
+        setParticipants(data || []);
+      })();
+    }, [activeQuest?.id]);
+
+    // Start new quest (leader only)
+    const startQuest = async (questTypeId: string) => {
+      if (!teamId) return;
+      setLoading(true);
+      await supabase.from('team_quests').insert({
+        team_id: teamId,
+        quest_type_id: questTypeId,
+        active: true,
+      });
+      setLoading(false);
+    };
+
+    // Join quest (one row per user)
+    const joinQuest = async () => {
+      if (!userId || !activeQuest?.id) return;
+      await supabase.from('team_quest_participants').insert({
+        team_quest_id: activeQuest.id,
+        user_id: userId,
+      });
+    };
+
+    return { activeQuest, questTypes, participants, loading, startQuest, joinQuest };
+  };
+
   return {
     userTeam,
     userTeamMembers,
@@ -305,5 +446,9 @@ export const useTeam = () => {
     generateJoinLink,
     fetchActiveJoinLink,
     joinViaToken,
+    useLoginStreak,
+    useRecordLogin,
+    useTeamLeaderboard,
+    useTeamQuests,
   };
 };
