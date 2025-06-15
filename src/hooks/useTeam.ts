@@ -1,53 +1,20 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import type { Team, TeamMember } from './useTeamTypes';
+import type { Team, TeamMember, TeamJoinLink } from './useTeamTypes';
 import { User } from '@supabase/supabase-js';
 
 export const useTeam = () => {
   const { user } = useAuth();
-  const [allTeams, setAllTeams] = useState<Team[]>([]);
+  // REMOVE allTeams and related logic.
   const [userTeam, setUserTeam] = useState<Team | null>(null);
   const [userTeamMembers, setUserTeamMembers] = useState<TeamMember[]>([]);
+  const [joinLink, setJoinLink] = useState<TeamJoinLink | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<any>(null);
 
-  const fetchAllTeams = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Fetch all teams and their member counts
-      // FIX: disambiguate joins using Supabase inline notation
-      // 1. get leader user (profiles) as 'leader_profile'
-      // 2. get member count by using team_members(id)
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
-        .select(`
-          *,
-          leader_profile:profiles!teams_leader_id_fkey ( username ),
-          team_members ( user_id )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (teamsError) throw teamsError;
-
-      // Map member count
-      const formattedTeams = teamsData.map(team => ({
-        ...team,
-        leader_username: team.leader_profile?.username || 'Unknown',
-        member_count: team.team_members ? team.team_members.length : 0,
-      }));
-
-      setAllTeams(formattedTeams);
-
-    } catch (e) {
-      setError(e);
-      console.error("Error fetching all teams:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
+  // Only fetch team
   const fetchUserTeam = useCallback(async (currentUser: User | null) => {
     if (!currentUser) {
       setUserTeam(null);
@@ -57,30 +24,24 @@ export const useTeam = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Check if user is part of a team
       const { data: memberData, error: memberError } = await supabase
         .from('team_members')
         .select('team_id')
         .eq('user_id', currentUser.id)
         .single();
 
-      if (memberError && memberError.code !== 'PGRST116') { // PGRST116: single row not found
-         throw memberError;
+      if (memberError && memberError.code !== 'PGRST116') {
+        throw memberError;
       }
 
       if (memberData) {
-        // User is in a team, fetch team details
         const { data: teamData, error: teamError } = await supabase
           .from('teams')
-          .select(`
-            *,
-            profiles ( username ) 
-          `)
+          .select('*')
           .eq('id', memberData.team_id)
           .single();
         if (teamError) throw teamError;
 
-        // Fetch team members
         const { data: membersData, error: membersError } = await supabase
           .from('team_members')
           .select(`
@@ -89,13 +50,8 @@ export const useTeam = () => {
           `)
           .eq('team_id', memberData.team_id);
         if (membersError) throw membersError;
-        
-        const formattedTeam = {
-          ...teamData,
-          leader_username: teamData.profiles?.username || 'Unknown',
-        }
 
-        setUserTeam(formattedTeam as Team);
+        setUserTeam(teamData as Team);
         setUserTeamMembers(membersData as TeamMember[]);
       } else {
         setUserTeam(null);
@@ -111,7 +67,6 @@ export const useTeam = () => {
 
   const createTeam = async (name: string, description: string | null) => {
     if (!user) throw new Error("User must be logged in to create a team.");
-    // Frontend validation for security and better UX
     if (name.length > 50) {
       setError({ message: "Team name too long (max 50 characters)." });
       return null;
@@ -129,19 +84,15 @@ export const useTeam = () => {
         .select()
         .single();
       if (teamError) throw teamError;
-
-      // Automatically add leader as a member (DB trigger might handle this, but explicit is safer)
       const { error: memberError } = await supabase
         .from('team_members')
         .insert({ team_id: teamData.id, user_id: user.id });
       if (memberError) {
-        // Attempt to clean up created team if member insert fails
         await supabase.from('teams').delete().eq('id', teamData.id);
         throw memberError;
       }
-      
-      await fetchAllTeams(); // Refresh all teams list
-      await fetchUserTeam(user); // Refresh user's team status
+
+      await fetchUserTeam(user);
       return teamData;
     } catch (e) {
       setError(e);
@@ -152,29 +103,90 @@ export const useTeam = () => {
     }
   };
 
-  const joinTeam = async (teamId: string) => {
-    if (!user) throw new Error("User must be logged in to join a team.");
+  // Generate a new join link for the leader (expires in 1 hr, unique, one-time use)
+  const generateJoinLink = async () => {
+    if (!user || !userTeam || userTeam.leader_id !== user.id) return null;
     setIsLoading(true);
     setError(null);
     try {
-      // Check if user is already in a team using the DB function
-      const { data: isInTeamData, error: isInTeamError } = await supabase.rpc('is_user_in_team', { p_user_id: user.id });
-      if (isInTeamError) throw isInTeamError;
-      if (isInTeamData) {
-        throw new Error("User is already in a team.");
-      }
+      // Generate random token
+      const token = Math.random().toString(36).substr(2, 10) + Date.now().toString(36);
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
-      const { error: joinError } = await supabase
-        .from('team_members')
-        .insert({ team_id: teamId, user_id: user.id });
-      if (joinError) throw joinError;
-      
-      await fetchAllTeams();
+      const { data, error } = await supabase
+        .from('team_join_links')
+        .insert({
+          team_id: userTeam.id,
+          token,
+          expires_at: expiresAt,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setJoinLink(data as TeamJoinLink);
+      return data as TeamJoinLink;
+    } catch (err) {
+      setError(err);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Get most recent unused join link for the leader (within 1 hour)
+  const fetchActiveJoinLink = useCallback(async () => {
+    if (!user || !userTeam || userTeam.leader_id !== user.id) {
+      setJoinLink(null);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const nowISO = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('team_join_links')
+        .select('*')
+        .eq('team_id', userTeam.id)
+        .eq('used', false)
+        .gte('expires_at', nowISO)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+      setJoinLink(data as TeamJoinLink || null);
+    } catch (err) {
+      setError(err);
+      setJoinLink(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, userTeam]);
+
+  // Use edge function to join via join link token
+  const joinViaToken = async (token: string) => {
+    if (!user) throw new Error("You must be logged in.");
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/functions/v1/team-join-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          join_token: token,
+          user_id: user.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError({ message: data.error || "Could not join team." });
+        return false;
+      }
       await fetchUserTeam(user);
       return true;
-    } catch (e) {
-      setError(e);
-      console.error("Error joining team:", e);
+    } catch (err) {
+      setError(err);
       return false;
     } finally {
       setIsLoading(false);
@@ -187,18 +199,15 @@ export const useTeam = () => {
     setError(null);
     try {
       if (userTeam.leader_id === user.id) {
-         // Check if there are other members
         const { data: members, error: membersError } = await supabase
           .from('team_members')
           .select('user_id')
           .eq('team_id', userTeam.id);
-        
-        if (membersError) throw membersError;
 
+        if (membersError) throw membersError;
         if (members && members.length > 1) {
           throw new Error("Leaders cannot leave a team with other members. Please transfer leadership or remove members first.");
         }
-        // If leader is the only member, they can leave (which effectively deletes the team due to cascade)
       }
 
       const { error: leaveError } = await supabase
@@ -208,51 +217,57 @@ export const useTeam = () => {
         .eq('team_id', userTeam.id);
       if (leaveError) throw leaveError;
 
-      // If the leader leaves and is the last member, the team should be deleted by cascade constraint.
-      // Or handle team deletion explicitly if leader leaves.
       if (userTeam.leader_id === user.id) {
-          const { error: deleteTeamError } = await supabase
-            .from('teams')
-            .delete()
-            .eq('id', userTeam.id);
-          if (deleteTeamError) console.error("Error deleting team after leader left:", deleteTeamError);
+        const { error: deleteTeamError } = await supabase
+          .from('teams')
+          .delete()
+          .eq('id', userTeam.id);
+        if (deleteTeamError) console.error("Error deleting team after leader left:", deleteTeamError);
       }
-      
-      await fetchAllTeams();
-      await fetchUserTeam(user); // This will set userTeam to null
+
+      setUserTeam(null);
+      setUserTeamMembers([]);
+      setJoinLink(null);
+
+      await fetchUserTeam(user);
       return true;
     } catch (e) {
       setError(e);
-      console.error("Error leaving team:", e);
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Initial fetch for user's team
+
   useEffect(() => {
     if (user) {
       fetchUserTeam(user);
     } else {
-      // Clear team data if user logs out
       setUserTeam(null);
       setUserTeamMembers([]);
-      setAllTeams([]); // Optionally clear all teams or keep them cached
     }
   }, [user, fetchUserTeam]);
 
+  // Fetch or clear join link on team/user change
+  useEffect(() => {
+    if (userTeam && user && userTeam.leader_id === user.id) {
+      fetchActiveJoinLink();
+    } else {
+      setJoinLink(null);
+    }
+  }, [userTeam, user, fetchActiveJoinLink]);
 
   return {
-    allTeams,
     userTeam,
     userTeamMembers,
+    joinLink,
     isLoading,
     error,
-    fetchAllTeams,
     fetchUserTeam,
     createTeam,
-    joinTeam,
     leaveTeam,
+    generateJoinLink,
+    fetchActiveJoinLink,
+    joinViaToken,
   };
 };

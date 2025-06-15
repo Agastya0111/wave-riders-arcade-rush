@@ -15,3 +15,12 @@ export interface TeamMember {
   joined_at: string;
   profile?: { username: string };
 }
+
+export interface TeamJoinLink {
+  id: string;
+  team_id: string;
+  token: string;
+  expires_at: string;
+  used: boolean;
+  created_at: string;
+}

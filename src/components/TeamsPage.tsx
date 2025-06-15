@@ -1,74 +1,54 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTeam } from '@/hooks/useTeam';
 import { useAuth } from '@/hooks/useAuth';
-import { TeamCard } from './TeamCard';
-import { CreateTeamForm } from './CreateTeamForm';
 import { MyTeamView } from './MyTeamView';
+import { CreateTeamForm } from './CreateTeamForm';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ShieldAlert, Users, PlusCircle, Info } from 'lucide-react';
 
 export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void }) => {
   const { user } = useAuth();
-  const { 
-    allTeams, 
-    userTeam, 
+  // Remove allTeams and related code.
+  const {
+    userTeam,
     userTeamMembers,
-    isLoading: teamsLoading, 
-    error: teamsError, 
-    fetchAllTeams,
-    fetchUserTeam,
-    joinTeam,
+    isLoading,
+    error,
     leaveTeam,
+    createTeam,
+    fetchUserTeam,
   } = useTeam();
-  
-  const [view, setView] = useState<'list' | 'create' | 'my_team'>('list');
+
+  const [view, setView] = useState<'create' | 'my_team'>('my_team');
 
   useEffect(() => {
-    fetchAllTeams();
-    if (user) {
-      fetchUserTeam(user);
-    }
-  }, [fetchAllTeams, fetchUserTeam, user]);
-  
+    // Always try to fetch user's team on mount or user change
+    fetchUserTeam(user || null);
+  }, [fetchUserTeam, user]);
+
   useEffect(() => {
     if (userTeam) {
       setView('my_team');
     } else {
-      if (view === 'my_team') {
-        setView('list');
-      }
+      setView('create');
     }
-  }, [userTeam, view]);
+  }, [userTeam]);
 
-  const handleJoinTeam = async (teamId: string) => {
-    const success = await joinTeam(teamId);
-    if (success) {
-      alert("Successfully joined team!"); // Replace with toast
-    } else {
-      alert("Failed to join team. You might already be in a team or an error occurred."); // Replace with toast
-    }
-  };
-  
   const handleLeaveTeam = async () => {
     const success = await leaveTeam();
-     if (success) {
-      alert("Successfully left the team."); // Replace with toast
-      setView('list');
-    } else {
-      alert("Failed to leave team."); // Replace with toast
+    if (success) {
+      setView('create');
     }
-  }
-
-  const handleTeamCreated = () => {
-    alert("Team created successfully!"); // Replace with toast
   };
 
-  if (teamsLoading && !allTeams.length && !userTeam) {
+  const handleTeamCreated = () => {
+    setView('my_team');
+  };
+
+  if (isLoading && !userTeam) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 min-h-[300px]">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mb-4" />
-        <p className="text-lg text-gray-600">Loading Teams...</p>
+      <div className="flex items-center justify-center min-h-[300px]">
+        <span className="text-blue-600 font-semibold">Loading...</span>
       </div>
     );
   }
@@ -76,93 +56,38 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   if (view === 'my_team' && userTeam) {
     return (
       <div className="space-y-6">
-        <MyTeamView 
-          team={userTeam} 
-          members={userTeamMembers} 
+        <MyTeamView
+          team={userTeam}
+          members={userTeamMembers}
           currentUserId={user?.id || null}
           onLeaveTeam={handleLeaveTeam}
         />
-        <Button variant="outline" onClick={() => setView('list')} className="w-full">
-          View All Teams
-        </Button>
+        {onBackToMainMenu && (
+          <Button variant="outline" onClick={onBackToMainMenu} className="w-full">
+            Back to Main Menu
+          </Button>
+        )}
       </div>
     );
   }
 
+  // No team: show only create team UI, no team list.
   if (view === 'create') {
     return (
       <div className="space-y-6">
         <CreateTeamForm onTeamCreated={handleTeamCreated} />
-        <div className="flex flex-col gap-2 w-full">
-          <Button variant="outline" onClick={() => setView('list')} className="w-full">
-            Back to Teams List
+        {onBackToMainMenu && (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onBackToMainMenu}
+          >
+            Back to Main Menu
           </Button>
-          {userTeam && (
-            <Button
-              variant="destructive"
-              onClick={handleLeaveTeam}
-              className="w-full"
-            >
-              Exit Team
-            </Button>
-          )}
-          {onBackToMainMenu && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={onBackToMainMenu}
-            >
-              Back to Main Menu
-            </Button>
-          )}
-        </div>
+        )}
       </div>
     );
   }
 
-  // Default to 'list' view
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-blue-700">Available Teams</h2>
-        {!userTeam && (
-          <Button onClick={() => setView('create')}>
-            <PlusCircle className="w-4 h-4 mr-2" /> Create Team
-          </Button>
-        )}
-        {userTeam && (
-           <Button onClick={() => setView('my_team')} variant="outline">
-            View My Team
-          </Button>
-        )}
-      </div>
-
-      {teamsError && (
-        <div className="p-4 bg-red-100 text-red-700 rounded-md flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5" />
-          Error loading teams: {teamsError.message || "Unknown error"}
-        </div>
-      )}
-
-      {allTeams.length === 0 && !teamsLoading && (
-        <div className="text-center py-8">
-          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <p className="text-xl text-gray-500">No teams found.</p>
-          <p className="text-gray-400">Be the first to create one!</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {allTeams.map(team => (
-          <TeamCard 
-            key={team.id} 
-            team={team} 
-            onJoinTeam={handleJoinTeam}
-            isUserInTeam={!!userTeam}
-            currentUserId={user?.id}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  return null;
 };
