@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
             <li>🌟 Reach new levels to unlock new vehicles and boss battles.</li>
           </ul>
           <div className="text-lg text-gray-700 mb-2">Items & Shortcuts:</div>
-           <ul className="list-disc list-inside text-gray-600 text-base space-y-2 mb-3">
+          <ul className="list-disc list-inside text-gray-600 text-base space-y-2 mb-3">
             <li>🛡️ <strong>Shield (Ctrl+S):</strong> Costs WRC. Destroys one obstacle.</li>
             <li>⚔️ <strong>Sword (Ctrl+Shift+S):</strong> Costs WRC. Destroys three obstacles.</li>
             <li>🌟 <strong>Starfish (Collectible):</strong> Find and touch this item for temporary invincibility.</li>

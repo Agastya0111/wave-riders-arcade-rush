@@ -8,8 +8,8 @@ interface AvatarSelectionProps {
 }
 
 const avatars: { id: Avatar; emoji: string; name: string; color: string }[] = [
-  { id: "boy", emoji: "🏄‍♂️", name: "Wave Boy", color: "bg-blue-500" },
-  { id: "girl", emoji: "🏄‍♀️", name: "Wave Girl", color: "bg-pink-500" },
+  { id: "boy", emoji: "🏄‍♂️", name: "Wave Rider Boy", color: "bg-blue-500" },
+  { id: "girl", emoji: "🏄‍♀️", name: "Wave Rider Girl", color: "bg-pink-500" },
   { id: "robot", emoji: "🤖", name: "Robo Rider", color: "bg-purple-500" },
   { id: "shark", emoji: "🦈", name: "Shark Rider", color: "bg-gray-500" },
   { id: "alien", emoji: "👽", name: "Alien Rider", color: "bg-green-500" },
@@ -51,3 +51,4 @@ export const AvatarSelection = ({ onSelect }: AvatarSelectionProps) => {
     </div>
   );
 };
+
