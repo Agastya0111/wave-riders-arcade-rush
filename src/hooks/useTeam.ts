@@ -6,6 +6,11 @@ import { User } from '@supabase/supabase-js';
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+// Import the refactored hooks
+import { useLoginStreak } from './useLoginStreak';
+import { useRecordLogin } from './useRecordLogin';
+import { useTeamLeaderboard } from './useTeamLeaderboard';
+
 export const useTeam = () => {
   const { user } = useAuth();
   const [userTeam, setUserTeam] = useState<Team | null>(null);
@@ -295,85 +300,13 @@ export const useTeam = () => {
   }, [userTeam, user, fetchActiveJoinLink]);
 
   // Add utility hook to get login streak
-  const useLoginStreak = (userId: string | null) => {
-    const [streak, setStreak] = useState(0);
-    useEffect(() => {
-      if (!userId) return setStreak(0);
-      (async () => {
-        const { data, error } = await supabase
-          .from('user_logins')
-          .select('login_date')
-          .eq('user_id', userId)
-          .order('login_date', { ascending: false });
-        if (error) return setStreak(0);
-        // Compute streak
-        let expected = new Date();
-        let count = 0;
-        for (const row of data) {
-          const dateStr = row.login_date;
-          if (!dateStr) break;
-          const d = new Date(dateStr + "T00:00:00");
-          if (d.toDateString() === expected.toDateString()) {
-            count += 1;
-            expected.setDate(expected.getDate() - 1);
-          } else if (count === 0 && d < expected && d > expected) {
-            continue;
-          } else {
-            break; // streak broken
-          }
-        }
-        setStreak(count);
-      })();
-    }, [userId]);
-    return streak;
-  };
+  const useLoginStreakValue = useLoginStreak(user?.id || null);
 
   // Util to mark today as a login
-  const useRecordLogin = (userId: string | null) => {
-    useEffect(() => {
-      if (!userId) return;
-      (async () => {
-        const today = new Date().toISOString().slice(0, 10);
-        // Only insert if today's login not present
-        const { data } = await supabase
-          .from('user_logins')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('login_date', today);
-
-        if (!data || !data.length) {
-          await supabase
-            .from('user_logins')
-            .insert({ user_id: userId, login_date: today });
-        }
-      })();
-    }, [userId]);
-  };
+  const useRecordLoginValue = useRecordLogin(user?.id || null);
 
   // Add team leaderboard (top teams by member count then quest completions)
-  const useTeamLeaderboard = () => {
-    const [teams, setTeams] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    useEffect(() => {
-      setLoading(true);
-      (async () => {
-        // Get top 10 teams by member count (and quest completions as secondary)
-        const { data, error } = await supabase
-          .from('teams')
-          .select(`id, name, description, leader_id, team_members(count), team_quests(count)`)
-          .order('team_members.count', { ascending: false })
-          .limit(10);
-
-        if (error) {
-          setTeams([]);
-        } else {
-          setTeams(data || []);
-        }
-        setLoading(false);
-      })();
-    }, []);
-    return { teams, loading };
-  };
+  const { teams: teamLeaderboardTeams, loading: teamLeaderboardLoading } = useTeamLeaderboard();
 
   return {
     userTeam,
@@ -387,8 +320,8 @@ export const useTeam = () => {
     generateJoinLink,
     fetchActiveJoinLink,
     joinViaToken,
-    useLoginStreak,
-    useRecordLogin,
-    useTeamLeaderboard,
+    useLoginStreak: useLoginStreakValue,     // (now import/re-exported)
+    useRecordLogin: useRecordLoginValue,     // (now import/re-exported)
+    useTeamLeaderboard: { teams: teamLeaderboardTeams, loading: teamLeaderboardLoading }, // (now import/re-exported)
   };
 };
