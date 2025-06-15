@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, ShieldAlert, Users, PlusCircle, Info } from 'lucide-react';
 
-export const TeamsPage = () => {
+export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void }) => {
   const { user } = useAuth();
   const { 
     allTeams, 
@@ -124,6 +124,15 @@ export const TeamsPage = () => {
               className="w-full"
             >
               Exit Team
+            </Button>
+          )}
+          {onBackToMainMenu && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={onBackToMainMenu}
+            >
+              Back to Main Menu
             </Button>
           )}
         </div>

@@ -77,7 +77,7 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-400 via-purple-500 to-purple-800 flex flex-col items-center justify-start p-4 pt-10">
         <div className="w-full max-w-2xl space-y-4">
-          <TeamsPage />
+          <TeamsPage onBackToMainMenu={() => setCurrentView('menu')} />
           <Button 
             onClick={() => setCurrentView('menu')}
             variant="outline"
