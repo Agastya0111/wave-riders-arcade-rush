@@ -1,5 +1,4 @@
-
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ObstacleType, GameCollectibleType } from "@/components/Game.d";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { updateObstacles } from "@/game/obstacleManager";
@@ -28,7 +27,16 @@ interface UseGameLoopProps {
   onCoinCollected?: () => void;
   setInvincibilityItems: (fn: (prev: number) => number) => void;
   setMagnetItems: (fn: (prev: number) => number) => void;
+  obstacleCount: number;
+  setObstacleCount: (value: number) => void;
 }
+
+const LEVEL_OBSTACLE_CAPS: Record<number, number> = {
+  1: 5,
+  2: 15,
+  3: 20,
+  4: 25
+};
 
 export const useGameLoop = ({
   gameOver,
@@ -53,9 +61,20 @@ export const useGameLoop = ({
   onCoinCollected,
   setInvincibilityItems,
   setMagnetItems,
+  obstacleCount,
+  setObstacleCount
 }: UseGameLoopProps) => {
   const { generateObstacle, generateCollectible } = useGameLogic({ level, gameSpeed, speedBoost });
   const followMode = level >= 5;
+  const prevLevel = useRef(level);
+
+  useEffect(() => {
+    // Reset count when level changes!
+    if (level !== prevLevel.current) {
+      setObstacleCount(0);
+      prevLevel.current = level;
+    }
+  }, [level, setObstacleCount]);
 
   useEffect(() => {
     if (gameOver || victory || gamePaused) return;
@@ -64,17 +83,23 @@ export const useGameLoop = ({
       const currentTime = Date.now();
 
       setObstacles(prevObstacles => {
-        const { updatedObstacles, newLastObstacleSpawn } = updateObstacles({
-            obstacles: prevObstacles,
-            currentTime,
-            lastObstacleSpawn,
-            level,
-            playerY,
-            followMode,
-            generateObstacle
+        const maxObstacles = LEVEL_OBSTACLE_CAPS[level];
+        const { updatedObstacles, newLastObstacleSpawn, spawned } = updateObstacles({
+          obstacles: prevObstacles,
+          currentTime,
+          lastObstacleSpawn,
+          level,
+          playerY,
+          followMode,
+          generateObstacle,
+          obstacleCount,
+          maxObstacles
         });
         if (newLastObstacleSpawn !== lastObstacleSpawn) {
-            setLastObstacleSpawn(newLastObstacleSpawn);
+          setLastObstacleSpawn(newLastObstacleSpawn);
+        }
+        if (spawned) {
+          setObstacleCount(obstacleCount + 1);
         }
         return updatedObstacles;
       });
@@ -116,9 +141,10 @@ export const useGameLoop = ({
     setScore,
     setLastObstacleSpawn,
     setLastCollectibleSpawn,
+    obstacleCount,
+    setObstacleCount,
   ]);
 
-  // Collectible collision detection
   useEffect(() => {
     if (gamePaused) return;
     

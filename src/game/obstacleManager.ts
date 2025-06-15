@@ -1,4 +1,3 @@
-
 import type { ObstacleType } from "@/components/Game.d";
 
 const isObstacleTooClose = (newY: number, newX: number, obstacles: ObstacleType[]) => {
@@ -18,11 +17,14 @@ interface UpdateObstaclesProps {
   playerY: number;
   followMode: boolean;
   generateObstacle: () => ObstacleType;
+  obstacleCount: number;
+  maxObstacles: number | undefined;
 }
 
 interface UpdateObstaclesResult {
     updatedObstacles: ObstacleType[];
     newLastObstacleSpawn: number;
+    spawned: boolean; // tells if a new one was spawned
 }
 
 export const updateObstacles = ({
@@ -33,6 +35,8 @@ export const updateObstacles = ({
   playerY,
   followMode,
   generateObstacle,
+  obstacleCount,
+  maxObstacles,
 }: UpdateObstaclesProps): UpdateObstaclesResult => {
   let updated = obstacles
     .map(obstacle => {
@@ -65,23 +69,29 @@ export const updateObstacles = ({
   let newLastObstacleSpawn = lastObstacleSpawn;
   let shouldSpawn = false;
   let effectiveMinSpawnInterval = 2450; 
+  let spawned = false;
 
-  if (level <= 4) {
-    effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
-    const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
-    const hasNoObstacles = updated.length === 0;
+  // Per-level obstacle count cap
+  const isLevelCap = typeof maxObstacles === "number" && obstacleCount >= maxObstacles;
 
-    if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
-      shouldSpawn = true;
-    } else if (
-      timeSinceLastSpawn >= effectiveMinSpawnInterval &&
-      Math.random() < 0.26 + 0.08 * level
-    ) {
-      shouldSpawn = true;
-    }
-  } else {
-    if (Math.random() < 0.020) {
-      shouldSpawn = true;
+  if (!isLevelCap) {
+    if (level <= 4) {
+      effectiveMinSpawnInterval = 2450 - (level - 1) * 100;
+      const timeSinceLastSpawn = currentTime - lastObstacleSpawn;
+      const hasNoObstacles = updated.length === 0;
+
+      if (timeSinceLastSpawn >= effectiveMinSpawnInterval && hasNoObstacles) {
+        shouldSpawn = true;
+      } else if (
+        timeSinceLastSpawn >= effectiveMinSpawnInterval &&
+        Math.random() < 0.26 + 0.08 * level
+      ) {
+        shouldSpawn = true;
+      }
+    } else {
+      if (Math.random() < 0.020) {
+        shouldSpawn = true;
+      }
     }
   }
   
@@ -100,8 +110,9 @@ export const updateObstacles = ({
 
     if (attempts < 7 || level > 4) {
       updated.push(newObstacle);
+      spawned = true;
     }
   }
   
-  return { updatedObstacles: updated, newLastObstacleSpawn };
+  return { updatedObstacles: updated, newLastObstacleSpawn, spawned };
 };

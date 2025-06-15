@@ -25,6 +25,7 @@ export const useGameState = () => {
   const [gamePaused, setGamePaused] = useState(false);
   const [invincibilityItems, setInvincibilityItems] = useState(0);
   const [magnetItems, setMagnetItems] = useState(0);
+  const [obstacleCount, setObstacleCount] = useState(0); // NEW: counts obstacles spawned this level
   // Removed wcrTriggered and showWCRPopup states
 
   const resetGame = () => {
@@ -51,6 +52,7 @@ export const useGameState = () => {
     setGamePaused(false);
     setInvincibilityItems(0);
     setMagnetItems(0);
+    setObstacleCount(0); // Reset count on new game
     // Removed reset for WCR state
   };
 
@@ -79,6 +81,8 @@ export const useGameState = () => {
     gamePaused,
     invincibilityItems,
     magnetItems,
+    obstacleCount,
+    setObstacleCount,
     // Removed wcrTriggered, showWCRPopup from returned state
     // Setters
     setPlayerY,
