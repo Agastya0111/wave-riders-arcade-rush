@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { useTeamQuests } from "@/hooks/useTeam";
+import { useTeamQuests } from "@/hooks/useTeamQuests";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // Panel shown on team page for quests
@@ -19,12 +20,17 @@ export const TeamQuestPanel = ({ teamId, userId, isLeader }: { teamId: string, u
           <CardContent>
             <div className="space-y-2 mb-2">
               {questTypes.map(q => (
-                <Button key={q.id} className="w-full my-1" onClick={() => startQuest(q.id)}>
-                  {q.name}: <span className="italic">{q.description}</span>
+                <Button
+                  key={q.id}
+                  className="w-full my-1"
+                  onClick={() => startQuest(q.id)}
+                  variant="default"
+                >
+                  <span className="font-semibold">{q.name}</span>: <span className="italic text-xs ml-1">{q.description}</span>
                 </Button>
               ))}
             </div>
-            <span className="text-xs text-gray-500">Start a quest and your team can join in!</span>
+            <span className="text-xs text-gray-500">Pick a quest your team can enjoy together!</span>
           </CardContent>
         </Card>
       );
@@ -32,7 +38,11 @@ export const TeamQuestPanel = ({ teamId, userId, isLeader }: { teamId: string, u
     return (
       <Card className="mb-4">
         <CardHeader><CardTitle>No active quest right now</CardTitle></CardHeader>
-        <CardContent><span>Wait for your leader to start a quest!</span></CardContent>
+        <CardContent><span>Wait for your leader to start a quest! Available quests are:</span>
+          <ul className="ml-4 list-disc text-sm mt-2">
+            {questTypes.map(q => <li key={q.id}><span className="font-semibold">{q.name}:</span> {q.description}</li>)}
+          </ul>
+        </CardContent>
       </Card>
     );
   }
