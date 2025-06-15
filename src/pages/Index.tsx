@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { AvatarSelection } from "@/components/AvatarSelection";
 import { Game } from "@/components/Game";
@@ -21,7 +22,7 @@ function isTouchDevice() {
 
 const AppContent = () => {
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null);
-  const [gameState, setGameState<'menu' | 'avatarSelection' | 'playing'>('menu');
+  const [gameState, setGameState] = useState<'menu' | 'avatarSelection' | 'playing'>('menu');
   const [guestMode, setGuestMode] = useState(false);
   const { user, loading } = useAuth();
 
@@ -151,3 +152,4 @@ const Index = () => {
 };
 
 export default Index;
+
