@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +8,6 @@ import { UserStats } from "./UserStats";
 import { TeamsPage } from "./TeamsPage";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react";
-// REMOVE THIS IF PRESENT
-// import { TeamInstructions } from "./TeamInstructions";
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -82,9 +81,14 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
     <div className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader className="text-center">
-          <div className="text-6xl mb-4">🌊🏄</div>
-          <CardTitle className="text-3xl text-blue-600">Wave Riders</CardTitle>
-          <p className="text-gray-600">Dive deep and rescue your friend!</p>
+          <img
+            src="/lovable-uploads/41778111-8d84-4433-9ee9-67bc1bb8229a.png"
+            alt="SplashRiders logo"
+            className="mx-auto w-32 h-32 object-contain mb-2"
+            draggable={false}
+          />
+          <CardTitle className="text-3xl text-blue-600 font-bold">SplashRiders</CardTitle>
+          <p className="text-gray-600">Endless surfing fun — ride waves and rescue your friend!</p>
           {isGuest && (
             <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2 mt-2">
               <p className="text-yellow-800 text-sm flex items-center gap-1">
@@ -95,7 +99,6 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
           )}
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* TeamInstructions REMOVED from here */}
           <Button 
             onClick={onStartGame}
             className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
