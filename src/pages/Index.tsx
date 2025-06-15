@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AvatarSelection } from "@/components/AvatarSelection";
 import { Game } from "@/components/Game";
@@ -10,12 +9,11 @@ import { TouchControlGuide } from "@/components/TouchControlGuide";
 
 export type Avatar = "boy" | "girl" | "robot" | "shark" | "alien";
 
-// Utility to detect touch device (simple version)
+// Utility to detect touch device (improved version)
 function isTouchDevice() {
   if (typeof window === "undefined") return false;
   return (
     "ontouchstart" in window ||
-    (window.DocumentTouch && document instanceof window.DocumentTouch) ||
     window.matchMedia("(pointer: coarse)").matches
   );
 }
@@ -152,4 +150,3 @@ const Index = () => {
 };
 
 export default Index;
-
