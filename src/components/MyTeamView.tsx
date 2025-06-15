@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Crown, LogOut, ShieldAlert } from 'lucide-react'; // ShieldAlert for potential issues
+import { User, Crown, LogOut, ShieldAlert, Link as LinkIcon, Check } from 'lucide-react'; // Added Link & Check icons
 import type { Team, TeamMember } from '@/hooks/useTeamTypes';
 import { useTeam } from '@/hooks/useTeam';
+import { useToast } from "@/hooks/use-toast";
 
 interface MyTeamViewProps {
   team: Team;
@@ -14,8 +16,28 @@ interface MyTeamViewProps {
 
 export const MyTeamView: React.FC<MyTeamViewProps> = ({ team, members, currentUserId, onLeaveTeam }) => {
   const { isLoading, error } = useTeam(); // To show loading/error for actions like leaving team
-
   const isLeader = team.leader_id === currentUserId;
+  const [hasCopied, setHasCopied] = React.useState(false);
+  const { toast } = useToast();
+
+  const joinUrl = `${window.location.origin}/?join_team=${team.id}`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setHasCopied(true);
+      toast({
+        title: "Join link copied!",
+        description: "Share this link with friends to invite them to your team."
+      });
+      setTimeout(() => setHasCopied(false), 1500);
+    } catch (e) {
+      toast({
+        title: "Failed to copy join link.",
+        description: "Your browser may not support clipboard copying."
+      });
+    }
+  };
 
   return (
     <Card className="w-full max-w-lg bg-white/95 backdrop-blur">
@@ -26,6 +48,26 @@ export const MyTeamView: React.FC<MyTeamViewProps> = ({ team, members, currentUs
         <CardDescription>{team.description || "No description provided."}</CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+          <Button 
+            type="button"
+            variant="outline"
+            className="flex items-center gap-2 w-full sm:w-auto"
+            onClick={handleCopyLink}
+          >
+            <LinkIcon className="w-4 h-4" />
+            {hasCopied ? (
+              <>
+                Join Link Copied <Check className="w-4 h-4 text-green-500" />
+              </>
+            ) : (
+              <>Copy Join Link</>
+            )}
+          </Button>
+          <span className="text-xs text-gray-400 break-all hidden sm:block">
+            {joinUrl}
+          </span>
+        </div>
         <h3 className="font-semibold text-lg mb-2">Team Members ({members.length})</h3>
         <ul className="space-y-2 mb-6 max-h-60 overflow-y-auto bg-slate-50 p-3 rounded-md">
           {members.map(member => (

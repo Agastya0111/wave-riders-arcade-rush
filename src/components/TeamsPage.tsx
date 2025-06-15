@@ -85,6 +85,15 @@ export const TeamsPage = () => {
           <strong>•</strong> To <span>leave</span>, use the <b>Leave Team</b> button. If you’re the last member, the team will be deleted.<br />
           <strong>•</strong> <span>Team up to compete for leaderboard spots and rewards!</span>
         </div>
+        <div className="pt-2">
+          <span className="font-bold text-blue-800">How to play as a team:</span>
+          <ul className="list-disc list-inside pl-4 text-blue-900">
+            <li>Invite your friends to join your team by sharing your team invite link.</li>
+            <li>The link can be copied using the "Copy Join Link" button from your team page.</li>
+            <li>Friends can click the link and easily find your team to join (as long as they are not in a team already).</li>
+            <li>Play together and compete for the top team spots!</li>
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );
