@@ -20,7 +20,9 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   } = useTeam();
 
   const [view, setView] = useState<'create' | 'my_team'>('my_team');
-  const [showInstructions, setShowInstructions] = useState(true);
+  // Show both instruction overlays (dismiss separately)
+  const [showHow, setShowHow] = useState(true);
+  const [showBenefits, setShowBenefits] = useState(true);
 
   useEffect(() => {
     fetchUserTeam(user || null);
@@ -33,6 +35,20 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
       setView('create');
     }
   }, [userTeam]);
+
+  // Both overlays must be dismissed before showing rest of UI
+  if (showHow || showBenefits) {
+    return (
+      <div className="flex flex-col items-center w-full">
+        <TeamInstructions
+          showPlayHow={showHow}
+          showBenefits={showBenefits}
+          onDismissPlayHow={() => setShowHow(false)}
+          onDismissBenefits={() => setShowBenefits(false)}
+        />
+      </div>
+    );
+  }
 
   const handleLeaveTeam = async () => {
     const success = await leaveTeam();
@@ -49,17 +65,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
     return (
       <div className="flex items-center justify-center min-h-[300px]">
         <span className="text-blue-600 font-semibold">Loading...</span>
-      </div>
-    );
-  }
-
-  // Instructions overlay
-  if (showInstructions) {
-    return (
-      <div className="flex flex-col items-center w-full">
-        <TeamInstructions actionButton={
-          <Button onClick={() => setShowInstructions(false)} className="mt-4 w-full">Got it</Button>
-        } />
       </div>
     );
   }

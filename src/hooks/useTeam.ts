@@ -1,18 +1,37 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Team, TeamMember, TeamJoinLink } from './useTeamTypes';
 import { User } from '@supabase/supabase-js';
+import { useToast } from "@/hooks/use-toast";
 
 export const useTeam = () => {
   const { user } = useAuth();
-  // REMOVE allTeams and related logic.
   const [userTeam, setUserTeam] = useState<Team | null>(null);
   const [userTeamMembers, setUserTeamMembers] = useState<TeamMember[]>([]);
   const [joinLink, setJoinLink] = useState<TeamJoinLink | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<any>(null);
+  const { toast } = useToast();
+
+  // Helper to check limits for this user
+  const canCreateAnotherTeam = async (userId: string) => {
+    const { count, error } = await supabase
+      .from('teams')
+      .select('id', { count: 'exact', head: true })
+      .eq('leader_id', userId);
+    if (error) return false; // Fail-safe: prevent excessive creation
+    return (count ?? 0) < 5;
+  };
+
+  const canJoinAnotherTeam = async (userId: string) => {
+    const { count, error } = await supabase
+      .from('team_members')
+      .select('team_id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (error) return false;
+    return (count ?? 0) < 10;
+  };
 
   // Only fetch team
   const fetchUserTeam = useCallback(async (currentUser: User | null) => {
@@ -67,6 +86,14 @@ export const useTeam = () => {
 
   const createTeam = async (name: string, description: string | null) => {
     if (!user) throw new Error("User must be logged in to create a team.");
+    // CHECK LIMIT
+    const canCreate = await canCreateAnotherTeam(user.id);
+    if (!canCreate) {
+      const msg = "You have reached your maximum of 5 created teams.";
+      setError({ message: msg });
+      toast({ variant: "destructive", title: "Team Create Limit", description: msg });
+      return null;
+    }
     if (name.length > 50) {
       setError({ message: "Team name too long (max 50 characters)." });
       return null;
@@ -167,6 +194,14 @@ export const useTeam = () => {
   // Use edge function to join via join link token
   const joinViaToken = async (token: string) => {
     if (!user) throw new Error("You must be logged in.");
+    // CHECK LIMIT
+    const canJoin = await canJoinAnotherTeam(user.id);
+    if (!canJoin) {
+      const msg = "You have reached your maximum of 10 joined teams.";
+      setError({ message: msg });
+      toast({ variant: "destructive", title: "Team Join Limit", description: msg });
+      return false;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -181,6 +216,7 @@ export const useTeam = () => {
       const data = await res.json();
       if (!res.ok) {
         setError({ message: data.error || "Could not join team." });
+        toast({ variant: "destructive", title: "Failed to join team", description: data.error });
         return false;
       }
       await fetchUserTeam(user);
