@@ -64,24 +64,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
     alert("Team created successfully!"); // Replace with toast
   };
 
-  // "How to play as a team" instructions card (shown at top, on any view)
-  const TeamInstructions = () => (
-    <Card className="mb-4 bg-blue-50 border-blue-200">
-      <CardHeader className="py-2 px-4 flex flex-row items-center gap-2">
-        <Info className="text-blue-700" />
-        <CardTitle className="text-base text-blue-700">How to play as a team</CardTitle>
-      </CardHeader>
-      <CardContent className="py-1 px-4 text-blue-900 text-sm space-y-2">
-        <ul className="list-disc list-inside pl-4 text-blue-900">
-          <li>Invite your friends to join your team by sharing your team invite link.</li>
-          <li>The link can be copied using the "Copy Join Link" button from your team page.</li>
-          <li>Friends can click the link and easily find your team to join (as long as they are not in a team already).</li>
-          <li>Play together and compete for the top team spots!</li>
-        </ul>
-      </CardContent>
-    </Card>
-  );
-
   if (teamsLoading && !allTeams.length && !userTeam) {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[300px]">
@@ -94,7 +76,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   if (view === 'my_team' && userTeam) {
     return (
       <div className="space-y-6">
-        <TeamInstructions />
         <MyTeamView 
           team={userTeam} 
           members={userTeamMembers} 
@@ -111,7 +92,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   if (view === 'create') {
     return (
       <div className="space-y-6">
-        <TeamInstructions />
         <CreateTeamForm onTeamCreated={handleTeamCreated} />
         <div className="flex flex-col gap-2 w-full">
           <Button variant="outline" onClick={() => setView('list')} className="w-full">
@@ -143,7 +123,6 @@ export const TeamsPage = ({ onBackToMainMenu }: { onBackToMainMenu?: () => void 
   // Default to 'list' view
   return (
     <div className="space-y-6">
-      <TeamInstructions />
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-blue-700">Available Teams</h2>
         {!userTeam && (

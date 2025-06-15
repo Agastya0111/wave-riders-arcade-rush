@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { UserStats } from "./UserStats";
 import { TeamsPage } from "./TeamsPage";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Play, Trophy, BarChart3, User, Users as TeamsIcon } from "lucide-react";
+import { TeamInstructions } from "./TeamInstructions"; // ADD THIS LINE
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -94,6 +94,8 @@ export const MainMenu = ({ onStartGame, isGuest = false }: MainMenuProps) => {
           )}
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* ADD TeamInstructions RIGHT HERE */}
+          <TeamInstructions />
           <Button 
             onClick={onStartGame}
             className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
