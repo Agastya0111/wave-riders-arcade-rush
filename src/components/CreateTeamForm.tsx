@@ -17,6 +17,18 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
   const [formError, setFormError] = useState<string | null>(null);
   const { createTeam, isLoading, error } = useTeam();
 
+  // Add custom error parse for duplicate team name
+  const getFriendlyError = (rawError: string | null): string | null => {
+    if (!rawError) return null;
+    if (rawError.includes("duplicate key value violates unique constraint") && rawError.includes("teams_name_key")) {
+      return "A team with this name already exists. Please choose a different name.";
+    }
+    if (rawError.includes("Could not embed because more than one relationship was found")) {
+      return "A technical error occurred. Please report this to support.";
+    }
+    return rawError;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -41,8 +53,8 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
       setFormError(null);
       onTeamCreated(); // Notify parent component
     } else {
-      // Error is handled by the hook, could show a toast here
-      setFormError(error?.message || "Failed to create team.");
+      // Show friendly error if available
+      setFormError(getFriendlyError(error?.message || null) || "Failed to create team.");
       console.error("Failed to create team", error);
     }
   };
@@ -80,7 +92,7 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
           </div>
           {(formError || error) && (
             <p className="text-red-500 text-sm">
-              Error: {formError || error?.message || 'Failed to create team.'}
+              Error: {getFriendlyError(formError) || getFriendlyError(error?.message) || 'Failed to create team.'}
             </p>
           )}
           <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700">

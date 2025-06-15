@@ -17,23 +17,27 @@ export const useTeam = () => {
     setError(null);
     try {
       // Fetch all teams and their member counts
+      // FIX: disambiguate joins using Supabase inline notation
+      // 1. get leader user (profiles) as 'leader_profile'
+      // 2. get member count by using team_members(id)
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select(`
           *,
-          profiles ( username ),
-          team_members ( count )
+          leader_profile:profiles!teams_leader_id_fkey ( username ),
+          team_members ( user_id )
         `)
         .order('created_at', { ascending: false });
 
       if (teamsError) throw teamsError;
-      
+
+      // Map member count
       const formattedTeams = teamsData.map(team => ({
         ...team,
-        leader_username: team.profiles?.username || 'Unknown',
-        // @ts-ignore
-        member_count: team.team_members[0]?.count || 0,
+        leader_username: team.leader_profile?.username || 'Unknown',
+        member_count: team.team_members ? team.team_members.length : 0,
       }));
+
       setAllTeams(formattedTeams);
 
     } catch (e) {
