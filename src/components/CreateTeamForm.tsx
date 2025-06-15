@@ -14,21 +14,35 @@ interface CreateTeamFormProps {
 export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
   const [teamName, setTeamName] = useState('');
   const [description, setDescription] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
   const { createTeam, isLoading, error } = useTeam();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
     if (!teamName.trim()) {
-      alert("Team name is required."); // Replace with better error handling
+      setFormError("Team name is required.");
       return;
     }
+    if (teamName.length > 50) {
+      setFormError("Team name cannot exceed 50 characters.");
+      return;
+    }
+    if (description.length > 200) {
+      setFormError("Description cannot exceed 200 characters.");
+      return;
+    }
+
     const newTeam = await createTeam(teamName, description || null);
     if (newTeam) {
       setTeamName('');
       setDescription('');
+      setFormError(null);
       onTeamCreated(); // Notify parent component
     } else {
       // Error is handled by the hook, could show a toast here
+      setFormError(error?.message || "Failed to create team.");
       console.error("Failed to create team", error);
     }
   };
@@ -42,7 +56,7 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="teamName">Team Name</Label>
+            <Label htmlFor="teamName">Team Name <span className="text-xs text-gray-500">(max 50 characters)</span></Label>
             <Input
               id="teamName"
               value={teamName}
@@ -51,9 +65,10 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
               required
               maxLength={50}
             />
+            <div className="text-xs text-gray-400 text-right">{teamName.length}/50</div>
           </div>
           <div>
-            <Label htmlFor="description">Team Description (Optional)</Label>
+            <Label htmlFor="description">Team Description <span className="text-xs text-gray-500">(optional, max 200 characters)</span></Label>
             <Textarea
               id="description"
               value={description}
@@ -61,8 +76,13 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated })
               placeholder="Riding the gnarliest waves together!"
               maxLength={200}
             />
+            <div className="text-xs text-gray-400 text-right">{description.length}/200</div>
           </div>
-          {error && <p className="text-red-500 text-sm">Error: {error.message || 'Failed to create team.'}</p>}
+          {(formError || error) && (
+            <p className="text-red-500 text-sm">
+              Error: {formError || error?.message || 'Failed to create team.'}
+            </p>
+          )}
           <Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700">
             {isLoading ? 'Creating...' : 'Create Team'}
           </Button>

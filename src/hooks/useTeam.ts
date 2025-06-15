@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -124,6 +123,15 @@ export const useTeam = () => {
 
   const createTeam = async (name: string, description: string | null) => {
     if (!user) throw new Error("User must be logged in to create a team.");
+    // Frontend validation for security and better UX
+    if (name.length > 50) {
+      setError({ message: "Team name too long (max 50 characters)." });
+      return null;
+    }
+    if (description && description.length > 200) {
+      setError({ message: "Description too long (max 200 characters)." });
+      return null;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -260,3 +268,4 @@ export const useTeam = () => {
     leaveTeam,
   };
 };
+
