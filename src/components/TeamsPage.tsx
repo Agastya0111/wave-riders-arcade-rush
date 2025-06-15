@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTeam } from '@/hooks/useTeam';
 import { useAuth } from '@/hooks/useAuth';
@@ -5,7 +6,8 @@ import { TeamCard } from './TeamCard';
 import { CreateTeamForm } from './CreateTeamForm';
 import { MyTeamView } from './MyTeamView';
 import { Button } from '@/components/ui/button';
-import { Loader2, ShieldAlert, Users, PlusCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, ShieldAlert, Users, PlusCircle, Info } from 'lucide-react';
 
 export const TeamsPage = () => {
   const { user } = useAuth();
@@ -68,6 +70,25 @@ export const TeamsPage = () => {
     alert("Team created successfully!"); // Replace with toast
   };
 
+  // Teams instructions card (shown at top, on any view)
+  const TeamInstructions = () => (
+    <Card className="mb-4 bg-blue-50 border-blue-200">
+      <CardHeader className="py-2 px-4 flex flex-row items-center gap-2">
+        <Info className="text-blue-700" />
+        <CardTitle className="text-base text-blue-700">How Teams Work</CardTitle>
+      </CardHeader>
+      <CardContent className="py-1 px-4 text-blue-900 text-sm space-y-2">
+        <div>
+          <strong>•</strong> <span>Create a team</span> if you want to lead your own group.<br />
+          <strong>•</strong> <span>Join an existing team</span> to play together (one team at a time).<br />
+          <strong>•</strong> Only <b>team leaders</b> can delete teams or remove others.<br />
+          <strong>•</strong> To <span>leave</span>, use the <b>Leave Team</b> button. If you’re the last member, the team will be deleted.<br />
+          <strong>•</strong> <span>Team up to compete for leaderboard spots and rewards!</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   if (teamsLoading && !allTeams.length && !userTeam) {
     return (
       <div className="flex flex-col items-center justify-center p-8 min-h-[300px]">
@@ -80,6 +101,7 @@ export const TeamsPage = () => {
   if (view === 'my_team' && userTeam) {
     return (
       <div className="space-y-6">
+        <TeamInstructions />
         <MyTeamView 
           team={userTeam} 
           members={userTeamMembers} 
@@ -96,6 +118,7 @@ export const TeamsPage = () => {
   if (view === 'create') {
     return (
       <div className="space-y-6">
+        <TeamInstructions />
         <CreateTeamForm onTeamCreated={handleTeamCreated} />
         <Button variant="outline" onClick={() => setView('list')} className="w-full">
           Back to Teams List
@@ -107,6 +130,7 @@ export const TeamsPage = () => {
   // Default to 'list' view
   return (
     <div className="space-y-6">
+      <TeamInstructions />
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-blue-700">Available Teams</h2>
         {!userTeam && (
@@ -150,3 +174,4 @@ export const TeamsPage = () => {
     </div>
   );
 };
+
