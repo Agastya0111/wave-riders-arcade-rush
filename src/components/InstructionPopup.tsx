@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export const InstructionPopup = ({ onClose }: InstructionPopupProps) => {
       <Card className="w-full max-w-md bg-white/95 backdrop-blur shadow-2xl">
         <CardHeader>
           <CardTitle className="text-center text-xl text-blue-700">
-            Welcome to Wave Riders!
+            Welcome to SplashRiders!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
