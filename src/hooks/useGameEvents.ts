@@ -16,6 +16,12 @@ interface UseGameEventsProps {
   gamePaused: boolean;
   storyShown: boolean;
   showStoryPopup: boolean;
+  showLevelStoryPopup: boolean;
+  levelStoryShown: number[];
+  showFinalChoicePopup: boolean;
+  showChoiceResultPopup: boolean;
+  finalChoice: string;
+  choiceMessage: string;
   obstacles: ObstacleType[];
   playerX: number;
   playerY: number;
@@ -31,6 +37,12 @@ interface UseGameEventsProps {
   setObstacles: (fn: (prev: ObstacleType[]) => ObstacleType[]) => void;
   setGameOver: (value: boolean) => void;
   setShowSignupPrompt: (value: boolean) => void;
+  setShowLevelStoryPopup: (value: boolean) => void;
+  setLevelStoryShown: (fn: (prev: number[]) => number[]) => void;
+  setShowFinalChoicePopup: (value: boolean) => void;
+  setShowChoiceResultPopup: (value: boolean) => void;
+  setFinalChoice: (value: string) => void;
+  setChoiceMessage: (value: string) => void;
   // Removed setWcrTriggered and setShowWCRPopup
 }
 
@@ -43,6 +55,12 @@ export const useGameEvents = ({
   gamePaused,
   storyShown,
   showStoryPopup,
+  showLevelStoryPopup,
+  levelStoryShown,
+  showFinalChoicePopup,
+  showChoiceResultPopup,
+  finalChoice,
+  choiceMessage,
   obstacles,
   playerX,
   playerY,
@@ -56,6 +74,12 @@ export const useGameEvents = ({
   setObstacles,
   setGameOver,
   setShowSignupPrompt,
+  setShowLevelStoryPopup,
+  setLevelStoryShown,
+  setShowFinalChoicePopup,
+  setShowChoiceResultPopup,
+  setFinalChoice,
+  setChoiceMessage,
   // Removed setWcrTriggered, setShowWCRPopup from destructuring
 }: UseGameEventsProps) => {
   const { user } = useAuth();
@@ -81,12 +105,27 @@ export const useGameEvents = ({
     }
   }, [level, storyShown, showStoryPopup, setShowStoryPopup]);
 
-  // Victory condition
+  // Level story popups trigger
   useEffect(() => {
-    if (level >= 10 && lives >= 3 && score >= 50000) {
+    const storyLevels = [16, 17, 18, 19];
+    if (storyLevels.includes(level) && !levelStoryShown.includes(level) && !showLevelStoryPopup) {
+      setShowLevelStoryPopup(true);
+    }
+  }, [level, levelStoryShown, showLevelStoryPopup, setShowLevelStoryPopup]);
+
+  // Final choice trigger (level 20)
+  useEffect(() => {
+    if (level >= 20 && !showFinalChoicePopup && !showChoiceResultPopup && !finalChoice) {
+      setShowFinalChoicePopup(true);
+    }
+  }, [level, showFinalChoicePopup, showChoiceResultPopup, finalChoice, setShowFinalChoicePopup]);
+
+  // Victory condition - now triggers after choice is made at level 20
+  useEffect(() => {
+    if (level >= 20 && finalChoice && choiceMessage && !showChoiceResultPopup) {
       setVictory(true);
     }
-  }, [level, lives, score, setVictory]);
+  }, [level, finalChoice, choiceMessage, showChoiceResultPopup, setVictory]);
 
   // Collision detection
   useEffect(() => {

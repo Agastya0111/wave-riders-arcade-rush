@@ -1,4 +1,7 @@
 import { StoryPopup } from "./StoryPopup";
+import { LevelStoryPopup } from "./LevelStoryPopup";
+import { FinalChoicePopup } from "./FinalChoicePopup";
+import { ChoiceResultPopup } from "./ChoiceResultPopup";
 import { MilestonePopup } from "./MilestonePopup";
 import { ShopDialog } from "./ShopDialog";
 import { SignupPrompt } from "./SignupPrompt";
@@ -32,6 +35,34 @@ export const GamePopups = ({
           onContinue={() => { // Pass onContinue
             gameState.setShowStoryPopup(false);
             gameState.setStoryShown(true);
+          }}
+        />
+      )}
+      {gameState.showLevelStoryPopup && (
+        <LevelStoryPopup
+          level={gameState.level}
+          onContinue={() => {
+            gameState.setShowLevelStoryPopup(false);
+            gameState.setLevelStoryShown(prev => [...prev, gameState.level]);
+          }}
+        />
+      )}
+      {gameState.showFinalChoicePopup && (
+        <FinalChoicePopup
+          onChoiceMade={(choice, message) => {
+            gameState.setFinalChoice(choice);
+            gameState.setChoiceMessage(message);
+            gameState.setShowFinalChoicePopup(false);
+            gameState.setShowChoiceResultPopup(true);
+          }}
+        />
+      )}
+      {gameState.showChoiceResultPopup && (
+        <ChoiceResultPopup
+          choice={gameState.finalChoice}
+          message={gameState.choiceMessage}
+          onContinue={() => {
+            gameState.setShowChoiceResultPopup(false);
           }}
         />
       )}

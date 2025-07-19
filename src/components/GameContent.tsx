@@ -59,6 +59,8 @@ export const GameContent = () => {
         score={gameState.score}
         onPlayAgain={gameActions.handleRestartGame}
         onChooseAvatar={gameActions.handleChooseNewAvatar}
+        finalChoice={gameState.finalChoice}
+        choiceMessage={gameState.choiceMessage}
       />
     );
   }

@@ -9,9 +9,11 @@ interface VictoryProps {
   score: number;
   onPlayAgain: () => void;
   onChooseAvatar: () => void;
+  finalChoice?: string;
+  choiceMessage?: string;
 }
 
-export const Victory = ({ score, onPlayAgain, onChooseAvatar }: VictoryProps) => {
+export const Victory = ({ score, onPlayAgain, onChooseAvatar, finalChoice, choiceMessage }: VictoryProps) => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const { user } = useAuth();
 
@@ -40,8 +42,20 @@ export const Victory = ({ score, onPlayAgain, onChooseAvatar }: VictoryProps) =>
           <div className="text-6xl mb-6">🏆⚔️👑</div>
           
           <div className="mb-6 space-y-2">
-            <p className="text-3xl font-bold text-green-600">You saved your friend!</p>
-            <p className="text-2xl text-gray-800">You are a hero!</p>
+            {finalChoice ? (
+              <>
+                <p className={`text-3xl font-bold ${finalChoice === 'forgive' ? 'text-green-600' : 'text-red-600'}`}>
+                  {finalChoice === 'forgive' ? 'You chose Peace!' : 'You chose Victory!'}
+                </p>
+                <p className="text-xl text-gray-800">{choiceMessage}</p>
+                <p className="text-lg">Your journey is complete!</p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-green-600">You saved your friend!</p>
+                <p className="text-2xl text-gray-800">You are a hero!</p>
+              </>
+            )}
             <p className="text-xl">Final Score: {score.toLocaleString()}</p>
           </div>
 

@@ -26,6 +26,12 @@ export const useGameState = () => {
   const [invincibilityItems, setInvincibilityItems] = useState(0);
   const [magnetItems, setMagnetItems] = useState(0);
   const [obstacleCount, setObstacleCount] = useState(0); // NEW: counts obstacles spawned this level
+  const [showLevelStoryPopup, setShowLevelStoryPopup] = useState(false);
+  const [levelStoryShown, setLevelStoryShown] = useState<number[]>([]);
+  const [showFinalChoicePopup, setShowFinalChoicePopup] = useState(false);
+  const [showChoiceResultPopup, setShowChoiceResultPopup] = useState(false);
+  const [finalChoice, setFinalChoice] = useState<string>("");
+  const [choiceMessage, setChoiceMessage] = useState<string>("");
   // Removed wcrTriggered and showWCRPopup states
 
   const resetGame = () => {
@@ -53,6 +59,12 @@ export const useGameState = () => {
     setInvincibilityItems(0);
     setMagnetItems(0);
     setObstacleCount(0); // Reset count on new game
+    setShowLevelStoryPopup(false);
+    setLevelStoryShown([]);
+    setShowFinalChoicePopup(false);
+    setShowChoiceResultPopup(false);
+    setFinalChoice("");
+    setChoiceMessage("");
     // Removed reset for WCR state
   };
 
@@ -83,6 +95,12 @@ export const useGameState = () => {
     magnetItems,
     obstacleCount,
     setObstacleCount,
+    showLevelStoryPopup,
+    levelStoryShown,
+    showFinalChoicePopup,
+    showChoiceResultPopup,
+    finalChoice,
+    choiceMessage,
     // Removed wcrTriggered, showWCRPopup from returned state
     // Setters
     setPlayerY,
@@ -108,6 +126,12 @@ export const useGameState = () => {
     setGamePaused,
     setInvincibilityItems,
     setMagnetItems,
+    setShowLevelStoryPopup,
+    setLevelStoryShown,
+    setShowFinalChoicePopup,
+    setShowChoiceResultPopup,
+    setFinalChoice,
+    setChoiceMessage,
     // Removed setWcrTriggered, setShowWCRPopup from returned setters
     // Utils
     resetGame,
