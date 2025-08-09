@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useRef, ReactNode } from "react";
 import { useGameState, GameStateHook } from "@/hooks/useGameState";
 import { useGameLoop } from "@/hooks/useGameLoop";
@@ -5,7 +6,7 @@ import { useGameControls } from "@/hooks/useGameControls";
 import { useGameEvents } from "@/hooks/useGameEvents";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTouchControls } from "@/hooks/useTouchControls";
-import { useWRCSystem, WRCSystemHook } from "@/hooks/useWRCSystem";
+import { useSecureWRCSystem, SecureWRCSystemHook } from "@/hooks/useSecureWRCSystem";
 import { useItemEffects } from "@/hooks/useItemEffects";
 import type { Avatar } from "@/pages/Index";
 
@@ -24,7 +25,7 @@ interface GameProviderProps {
 
 interface GameContextValue {
   gameState: GameStateHook;
-  wrcSystem: WRCSystemHook;
+  wrcSystem: SecureWRCSystemHook;
   itemEffects: ReturnType<typeof useItemEffects>;
   gameInteractions: ReturnType<typeof useGameInteractions>;
   gameActions: ReturnType<typeof useGameActions>;
@@ -57,7 +58,7 @@ export const GameProvider = ({ avatar, onRestart, onSignup, children }: GameProv
   const [dolphinsUsed, setDolphinsUsed] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   
-  const wrcSystem = useWRCSystem();
+  const wrcSystem = useSecureWRCSystem();
   const itemEffects = useItemEffects();
 
   const [challenge, setChallenge] = useState<Challenge>({
@@ -198,3 +199,4 @@ export const useGame = () => {
   }
   return context;
 };
+
