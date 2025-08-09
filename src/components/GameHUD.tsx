@@ -12,11 +12,11 @@ import { EffectOverlay } from "./EffectOverlay";
 import { ChallengeBanner, Challenge } from "./ChallengeBanner";
 import type { Gear } from "@/components/Game.d";
 import { GameStateHook } from "@/hooks/useGameState";
-import { WRCSystemHook } from "@/hooks/useWRCSystem";
+import { SecureWRCSystemHook } from "@/hooks/useSecureWRCSystem";
 
 interface GameHUDProps {
   gameState: GameStateHook;
-  wrcSystem: WRCSystemHook;
+  wrcSystem: SecureWRCSystemHook;
   itemEffects: { shieldActive: boolean; swordActive: boolean };
   gameInteractions: {
     isInvincible: boolean;

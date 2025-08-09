@@ -130,7 +130,7 @@ export const useSecureWRCSystem = () => {
 
   const earnWRC = async (amount: number) => {
     if (amount <= 0 || amount > 100) {
-      return { success: false, message: "Invalid earn amount" };
+      return { success: false, new_balance: wrc, message: "Invalid earn amount" };
     }
     return await adjustWRC(amount);
   };

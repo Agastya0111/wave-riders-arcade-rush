@@ -1,3 +1,4 @@
+
 import { StoryPopup } from "./StoryPopup";
 import { LevelStoryPopup } from "./LevelStoryPopup";
 import { FinalChoicePopup } from "./FinalChoicePopup";
@@ -7,11 +8,11 @@ import { ShopDialog } from "./ShopDialog";
 import { SignupPrompt } from "./SignupPrompt";
 import { ReplayOverlay } from "./ReplayOverlay";
 import type { GameStateHook } from "@/hooks/useGameState";
-import type { WRCSystemHook } from "@/hooks/useWRCSystem";
+import type { SecureWRCSystemHook } from "@/hooks/useSecureWRCSystem";
 
 interface GamePopupsProps {
   gameState: GameStateHook;
-  wrcSystem: WRCSystemHook;
+  wrcSystem: SecureWRCSystemHook;
   localShowShop: boolean;
   setLocalShowShop: (value: boolean) => void;
   replayOverlayVisible: boolean;
