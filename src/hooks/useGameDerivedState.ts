@@ -1,11 +1,11 @@
 
 import type { GameStateHook } from "@/hooks/useGameState";
-import type { WRCSystemHook } from "@/hooks/useWRCSystem";
-import type { Gear } from "@/components/Game.d"; // Gear is exported from Game.d.ts
+import type { SecureWRCSystemHook } from "@/hooks/useSecureWRCSystem"; // Updated import
+import type { Gear } from "@/components/Game.d";
 
 interface UseGameDerivedStateProps {
   gameState: GameStateHook;
-  wrcSystem: WRCSystemHook;
+  wrcSystem: SecureWRCSystemHook; // Updated type
   localShowShop: boolean;
 }
 
@@ -22,7 +22,7 @@ export const useGameDerivedState = ({
   const bossActive =
     gameState.level === 10 && !gameState.gameOver && !gameState.victory;
 
-  const canAffordShop = wrcSystem.wrc >= 50;
+  const canAffordShop = wrcSystem.wrc >= 50 && !wrcSystem.isLoading;
 
   const showShopButton =
     !gameState.gameOver &&
@@ -31,7 +31,8 @@ export const useGameDerivedState = ({
     !gameState.showMilestonePopup &&
     !gameState.showShop &&
     !gameState.showSignupPrompt &&
-    !localShowShop;
+    !localShowShop &&
+    !wrcSystem.isLoading;
 
   return {
     currentGear,
@@ -41,4 +42,3 @@ export const useGameDerivedState = ({
     showShopButton,
   };
 };
-
